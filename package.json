@@ -17,7 +17,7 @@
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "next": "14.2.35",
-    "pdfjs-dist": "^5.7.284",
+    "pdfjs-dist": "^3.11.174",
     "react": "^18",
     "react-dom": "^18",
     "uuid": "^14.0.0"

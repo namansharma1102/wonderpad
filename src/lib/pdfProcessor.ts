@@ -1,4 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
 import { createClient } from '@/lib/supabase/server'
 import { createCanvas } from 'canvas'
 

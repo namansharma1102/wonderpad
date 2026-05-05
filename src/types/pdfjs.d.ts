@@ -1,1 +1,1 @@
-declare module 'pdfjs-dist/build/pdf.mjs';
+// Delete this since v3 has its own types or we don't need this empty declaration anymore
