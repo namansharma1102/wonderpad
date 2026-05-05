@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wonderpad - Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;family=Newsreader:opsz,wght@6-72,400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#e5eeff",
+                      "primary-fixed": "#ffdbca",
+                      "on-tertiary-fixed": "#1f1b0f",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-fixed-variant": "#783200",
+                      "tertiary": "#615c4b",
+                      "surface-bright": "#f8f9ff",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#5c647a",
+                      "inverse-on-surface": "#eaf1ff",
+                      "surface-variant": "#d3e4fe",
+                      "on-tertiary-fixed-variant": "#4b4637",
+                      "secondary-container": "#dae2fd",
+                      "on-tertiary-container": "#fffbff",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-surface-variant": "#584237",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "primary-container": "#c05400",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#ebe2cd",
+                      "primary": "#994200",
+                      "on-primary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface-tint": "#9d4400",
+                      "surface-container-high": "#dce9ff",
+                      "secondary": "#565e74",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#cec6b2",
+                      "primary-fixed-dim": "#ffb690",
+                      "on-surface": "#0b1c30",
+                      "inverse-surface": "#213145",
+                      "secondary-fixed": "#dae2fd",
+                      "inverse-primary": "#ffb690",
+                      "surface-dim": "#cbdbf5",
+                      "on-primary-fixed": "#331100",
+                      "background": "#f8f9ff",
+                      "outline-variant": "#e0c0b1",
+                      "outline": "#8c7265",
+                      "on-primary-container": "#fffbff",
+                      "on-background": "#0b1c30",
+                      "tertiary-container": "#7a7463",
+                      "surface-container-low": "#eff4ff",
+                      "surface": "#f8f9ff",
+                      "on-secondary-fixed": "#131b2e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "40px",
+                      "md": "16px",
+                      "container-max": "1280px",
+                      "reader-width": "720px",
+                      "sm": "8px",
+                      "xs": "4px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "ui-body": ["Inter"],
+                      "reader-body": ["Newsreader"],
+                      "headline-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "ui-body": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                      "reader-body": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-sm": ["13px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .progress-bar-glow {
+            box-shadow: 0 0 8px rgba(232, 105, 10, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-ui-body text-on-background min-h-screen pb-24 md:pb-0">
+<!-- TopAppBar from JSON -->
+<header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 docked full-width top-0 z-50 font-sans antialiased tracking-tight">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E8690A] cursor-pointer">menu</span>
+<span class="text-2xl font-black text-[#E8690A] tracking-tighter">Wonderpad</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#E8690A] font-semibold hover:text-[#E8690A] transition-colors" href="#">Library</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Discover</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Stats</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Settings</a>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center border-2 border-white shadow-sm overflow-hidden cursor-pointer active:opacity-70 transition-opacity">
+<span class="text-on-primary-fixed font-bold text-sm">JS</span>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-10">
+<!-- Title & Upload Button -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<h1 class="font-display-lg text-[28px] font-bold text-on-surface mb-2">My Library</h1>
+<p class="text-secondary font-ui-body">Continue where you left off in your literary journey.</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-8 py-4 bg-[#E8690A] text-white font-bold rounded-full shadow-lg shadow-orange-500/20 hover:bg-[#c05400] transition-all active:scale-95 group">
+<span class="material-symbols-outlined">add</span>
+<span>Upload a Book</span>
+</button>
+</div>
+<!-- Upload Zone -->
+<section class="mb-16">
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-[#E8690A] to-orange-300 rounded-lg blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+<div class="relative flex flex-col items-center justify-center py-12 px-6 border-2 border-dashed border-outline-variant bg-white rounded-lg transition-colors hover:border-[#E8690A]/50">
+<div class="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-[#E8690A] text-3xl">cloud_upload</span>
+</div>
+<p class="text-on-surface font-semibold text-lg mb-1">Drag and drop your files here</p>
+<p class="text-secondary text-sm">Supports PDF, EPUB, and MOBI (Max 50MB)</p>
+</div>
+</div>
+</section>
+<!-- Book Grid -->
+<section>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+<!-- Book Card 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A vintage, slightly worn book cover of The Great Gatsby resting on a minimalist dark wood surface. The lighting is moody and focused, with soft golden highlights reflecting off the Art Deco gold foil lettering. The atmosphere is sophisticated and literary, fitting a premium digital library theme with warm orange accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwF4dN5z6CPuXLcIXI2ITGpb8F8FuhwF8kqsT71kl21EP82X_EM1ze0G1FFkfbXSlbXf8b9UnxNxzUcN14iFNUsvahQnU5TiNeqTwB0CGgiouvKBWqM1bi5a4no1HV75blbbDRT10B1GT--2x9FZ1xOF9hHkmUPiSmLJhbpxh7a1xomnburItkyZwx1S7KU8xIULwczVqNyo9_vMYO3Md9BS_t7q44IAyF9F7OFe4EuSJ7Y4R1DbxGjqzD92EU49nPNBcSv5arNCs"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 32%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">The Great Gatsby</h3>
+<p class="text-secondary text-sm">F. Scott Fitzgerald</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">32% READ</span>
+</div>
+</div>
+<!-- Book Card 2 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A stark and modern book cover for George Orwell's 1984, featuring bold black typography against a muted, textured gray background. The visual style is minimal and editorial, emphasizing clean lines and high-contrast composition. The lighting is flat and even, creating a focused, focused-reading environment consistent with a high-end minimalist UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwOqoVcW4PxXNQodboY0kliFPlvHBdyidUOhcD48YhhmXcOtBLr6j5I-CZyfoh26g1kjvAbvGsCHe5j_khdeKLDBPZ0BGwDNqHEqpufobzm8jfADdDdmZe_jZZxeV5S3S9YE46b4hEfULtreDydMhaq1YY5dDUek2SOSIbnWSqmnSfqXdy8-W7V_Jx6Iotnx8Obn7XRCJLs6bnHfQqJQ6J0OQt4QugFCt2ohOQ5PbbOs3dgcJI4QrxgSTJQNunPAUq-JcqrjWFbqk"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 85%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">1984</h3>
+<p class="text-secondary text-sm">George Orwell</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">85% READ</span>
+</div>
+</div>
+<!-- Book Card 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A classic, elegant book cover for Pride and Prejudice by Jane Austen, displayed with soft-focus floral patterns in the background. The aesthetic is clean and bright, utilizing a palette of cream and soft sage. The lighting is airy and natural, evoking a sense of calm and intellectual focus typical of a premium e-reader experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk5Uhx4G-9Vbs_dmByitaNg6dWNJnhDg-nipxwQTsKggjLFzg6WlkH-dyDnH_RkfpN6E41yvZGdlYrx6_lJRdBlqHg6yMDD3smvPCJEI0rqoulZOMK3-HrJ54tgxAh8tr8zAPu0MTHUGxPVSs2koNBi1ynTpCOsYCRVT5PTg1v9QGZBbh9RHglGYZEHF1Q8HvINv7Pfcm_20YAaPwLaR1buXsG60oELYrVTz1C-XidjNiehqhOJ2PtCCuhF91bzajSxBfgg5oONCE"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 12%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">Pride and Prejudice</h3>
+<p class="text-secondary text-sm">Jane Austen</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">12% READ</span>
+</div>
+</div>
+<!-- Book Card 4 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A futuristic sci-fi book cover featuring abstract light trails and deep blue tones, perfect for a modern literary tool. The composition is dynamic yet balanced, with a focus on geometric clarity. The lighting is cool-toned with vibrant orange highlights that align with the brand's primary accent color, creating a unified and professional look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUO6GmZLgxF0fuH9_UR9FtZijnd0-kauErq-_qWQWHjZ-fCDHlQkK-GmbEFqaCdl6BWvjAB4q5luBh_xmaMIi6zh69bKTVHmM_2PRSDe0XYNZuS8BRlzLcHsFpBCBnTQRtfAJAxi3NAxaUyja_Hcn1kflkBSuWcOaxGN7rE_xzi3B-3_y3u1hXnAnEIWFUSlm8_TMFprAAU3IE7nZKo_-4sCM02sIrOSg9WDs_tlANIiS8aB9NhxoP-KlZ6eMErRZads4WD8zngRc"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 54%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">Dune</h3>
+<p class="text-secondary text-sm">Frank Herbert</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">54% READ</span>
+</div>
+</div>
+<!-- Book Card 5 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A professional-grade non-fiction book cover about design and architecture. The visual style is highly structured with a minimalist 12-column grid influence. Pure white space dominates the layout, punctuated by sharp black serif typography. The overall mood is authoritative and academic, designed for a focused reading experience in a high-end application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0QcLu4Sea19ZdeWvdy50Lfb_tBrzICaIdI7hVQvmEPttgxbIV3idKYIcOWOLHplKFsN7Wx-mS2_OLGf9EPBYSHXOa-R6W05-An2AEi-MI_JEUb7f11Gmdi9uTaLobH83SO_YbB-oZrX7vbuWLlkVBgEQ45rNmr6eKt4vLUUbMjEKFzZCzfI-u0_DaCCti3MFcS7SLygejepTmCxYBQwhGBoxKQO2209ujQsWIIY1ZBQKdgrvD_Foltbev_E7Q6PamxKgNUdufR4M"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 92%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">The Design of Everyday Things</h3>
+<p class="text-secondary text-sm">Don Norman</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">92% READ</span>
+</div>
+</div>
+<!-- Book Card 6 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist book cover featuring a single artistic line-drawing of a mountain range. The color palette is composed of soft earth tones and off-white textures. The lighting mimics soft morning sun, creating a serene and inviting atmosphere. This high-end visual fits perfectly within a modern digital library designed for calm and intellectual growth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlgruFsN9Kn5cyvjsc8oD3zs5yUFv152PnmTDp3hx-WdGZv_OEldQSTI0U_1ExOB_jQpS0qIOwRNh3WeW8mwk0RKKd0j1_GwZzU162WdkIW2GEpoFY9O84H2QWeXe3-699vAq9elmC-JJCFsS1PQeMmOjG51kk7ZgGVo5OJaC3rry5uzIbQ9OddHeqjwjgr2oCLOlYNrK6v_oy5unIKaMT7Imy1QlyC2gi3vzAbwRQUPao85WQp_ydCNaP5dlAipVX76duEcN0I6k"/>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+<div class="h-full bg-[#E8690A] progress-bar-glow" style="width: 0%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline-md text-base font-bold text-on-surface truncate">Meditations</h3>
+<p class="text-secondary text-sm">Marcus Aurelius</p>
+<span class="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">NEW</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State (Demonstration Purpose - Hidden) -->
+<section class="hidden flex flex-col items-center justify-center py-20 text-center">
+<div class="w-48 h-48 mb-8">
+<img class="w-full h-full object-contain" data-alt="A whimsical and minimalist 3D illustration of a floating open book in a bright, ethereal white space. The pages are softly fluttering as if caught in a gentle breeze. The overall color palette is composed of soft grays and vibrant orange accents. The lighting is high-key and optimistic, perfectly suited for an empty-state screen in a premium reading app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy035I2XPs0v2Qx5ey5jAiuucA-606zrOlDP_pw8nmNCeqguSpn3RUDS5lELQKSBqp_ucdlU058fhUq44mjxiyX4j0v6VnGmLXiX7rPdHQ-mRDrWcm9UE6EM1zgxMlrtl1EgIVbNChMALimvCzPOhZDeTSkNh7OKPF-on4dtRBKjfMX2BO4ijrvkZV0rb-cDyxngctV2XHYghmM9XRnWQt_amPJEzR_gHiO7etsVnDIDdbadzPyNZhO67IdhArTmvvNyYPxcFjiwU"/>
+</div>
+<h2 class="font-headline-md text-2xl font-bold text-on-surface mb-2">Your library is empty</h2>
+<p class="text-secondary mb-8 max-w-md">Upload your first PDF or EPUB to start building your personal sanctuary of knowledge.</p>
+<button class="px-10 py-4 bg-[#E8690A] text-white font-bold rounded-full hover:bg-[#c05400] transition-all">
+                Upload Button
+            </button>
+</section>
+</main>
+<!-- BottomNavBar from JSON -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe md:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-50">
+<div class="flex flex-col items-center justify-center text-[#E8690A] bg-orange-50 dark:bg-orange-950/30 rounded-full px-4 py-1 transition-transform active:scale-90">
+<span class="material-symbols-outlined">library_books</span>
+<span class="text-[10px] uppercase font-bold tracking-widest font-sans">Library</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] uppercase font-bold tracking-widest font-sans">Discover</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-[10px] uppercase font-bold tracking-widest font-sans">Stats</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] uppercase font-bold tracking-widest font-sans">Settings</span>
+</div>
+</nav>
+</body></html>

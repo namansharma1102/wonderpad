@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign Up | Wonderpad</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#eff4ff",
+                    "error-container": "#ffdad6",
+                    "inverse-surface": "#213145",
+                    "surface-container": "#e5eeff",
+                    "on-surface": "#0b1c30",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "primary": "#994200",
+                    "on-error-container": "#93000a",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface-variant": "#584237",
+                    "on-error": "#ffffff",
+                    "outline-variant": "#e0c0b1",
+                    "outline": "#8c7265",
+                    "on-primary-fixed": "#331100",
+                    "inverse-primary": "#ffb690",
+                    "tertiary": "#615c4b",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "primary-fixed-dim": "#ffb690",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#ebe2cd",
+                    "surface-tint": "#9d4400",
+                    "background": "#f8f9ff",
+                    "surface-container-high": "#dce9ff",
+                    "secondary-fixed": "#dae2fd",
+                    "on-background": "#0b1c30",
+                    "primary-container": "#c05400",
+                    "on-primary-container": "#fffbff",
+                    "secondary-container": "#dae2fd",
+                    "on-secondary-container": "#5c647a",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary-fixed-dim": "#cec6b2",
+                    "surface-variant": "#d3e4fe",
+                    "surface": "#f8f9ff",
+                    "secondary": "#565e74",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-bright": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#7a7463"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "container-max": "1280px",
+                    "reader-width": "720px",
+                    "sm": "8px",
+                    "lg": "24px",
+                    "xl": "40px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "reader-body": ["Newsreader"],
+                    "display-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "ui-body": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "reader-body": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["13px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "ui-body": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .focus-ring:focus {
+            outline: 2px solid #994200;
+            outline-offset: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-ui-body text-on-background min-h-screen flex flex-col">
+<!-- Header Suppression: Auth screens hide global nav per "Shell Visibility" rules -->
+<main class="flex-grow flex items-center justify-center px-lg py-xl">
+<div class="w-full max-w-[400px] flex flex-col items-center">
+<!-- Brand Identity -->
+<div class="mb-xl text-center">
+<div class="flex items-center justify-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="menu_book">menu_book</span>
+<span class="font-display-lg text-headline-md text-primary tracking-tight">Wonderpad</span>
+</div>
+<h1 class="font-display-lg text-headline-md text-on-surface mb-xs">Create your account</h1>
+<p class="font-ui-body text-on-surface-variant">Start reading beautifully.</p>
+</div>
+<!-- Social Auth -->
+<div class="w-full space-y-md">
+<button class="w-full flex items-center justify-center gap-md py-md px-lg bg-surface-container-lowest border border-outline-variant rounded-full font-label-sm text-on-surface hover:bg-surface-container-low transition-colors duration-200">
+<img alt="Google" class="w-5 h-5" data-alt="A clean, isolated Google logo on a white circular background, representing modern digital identity and authentication. The lighting is bright and flat, emphasizing the primary colors of the logo in a minimalist tech aesthetic. This image symbolizes trust, integration, and a seamless user experience within a high-end software ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa7sGq5wZ5guIjtCGwIhaTeRyKd3GXvN6CO5ZbmyFcAs_UaNzMjyb2DO-9-kzjzk1ditquZaQ6j5BwHlih46GzW9JZB5yYwh4VDL4uViJt2XmzcjwH-Qt14xejDj3ab7xAnjWgZ21tBBORzipwUNRyCIFPDbj9bF5fn0G-BJ4Y8hT-YmskI9PXmia4WnT-IVK_OFWgkCW7IQP6y22eZQSKEvkkmPGiG_o36sO460_iBk8TqpxqwJVrt_Y-1fN2_V6q8UtApJCFgeo"/>
+                    Continue with Google
+                </button>
+<!-- Divider -->
+<div class="relative flex items-center py-md">
+<div class="flex-grow border-t border-outline-variant"></div>
+<span class="flex-shrink mx-md font-label-sm text-outline uppercase tracking-widest text-[10px]">or</span>
+<div class="flex-grow border-t border-outline-variant"></div>
+</div>
+<!-- Form -->
+<form class="space-y-md w-full">
+<div class="space-y-xs">
+<label class="block font-label-sm text-outline uppercase text-[11px] ml-sm" for="email">Email address</label>
+<input class="w-full px-lg py-md rounded-full bg-surface-container border-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all duration-200 text-on-surface placeholder:text-outline/60" id="email" placeholder="name@example.com" type="email"/>
+</div>
+<div class="space-y-xs">
+<label class="block font-label-sm text-outline uppercase text-[11px] ml-sm" for="password">Password</label>
+<input class="w-full px-lg py-md rounded-full bg-surface-container border-none focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all duration-200 text-on-surface placeholder:text-outline/60" id="password" placeholder="••••••••" type="password"/>
+</div>
+<button class="w-full py-md bg-primary text-on-primary font-label-sm rounded-full hover:bg-primary-container transition-all duration-300 shadow-sm hover:shadow-md mt-md" type="submit">
+                        Create Account
+                    </button>
+</form>
+</div>
+<!-- Footer Link -->
+<p class="mt-xl font-ui-body text-sm text-on-surface-variant">
+                Already have an account? 
+                <a class="text-primary font-semibold hover:underline decoration-primary/30 underline-offset-4" href="#">Sign in</a>
+</p>
+</div>
+</main>
+<!-- Footer - Transactional suppression rule applied: No global footer on focused auth screen -->
+<!-- Backdrop Decorative Element (Hidden on mobile per instructions) -->
+<div class="hidden lg:block fixed right-0 top-0 h-full w-1/2 bg-surface-container-high overflow-hidden">
+<div class="absolute inset-0 opacity-20 pointer-events-none" data-alt="A macro shot of fine-grain paper texture from an antique literary journal, illuminated by soft, natural morning sunlight through a library window. The scene captures the tactile beauty of traditional publishing, with warm sepia tones and deep shadows that create a scholarly and peaceful mood. This high-end editorial background reinforces the premium reading experience and intellectual focus of the platform." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCUhOLE2M5AuC-FSYIWzRmsL64851UWsb3VuVQ84A9W4aTQsEpsfJXheGp1hsj7WVmccU0Drx7irCvh3GDdZAmqz4kJD042hD-O4rPuR2g86g6OHCmEKcW6rAbq5SGKoS1Tb-iwQFPgnOhRfKriAl_y5Tz-bA9yLuw054YBA2x7QhydxlxN5LYUs33q-r-WYzQX3Ur1za7FZc5xyd2wNOyjbCVaRfOw4I7hZkwzWZtBtyN29nWYhqGIF99bgxJEFI7BYTSgXjXIt0I'); background-size: cover; background-position: center;">
+</div>
+<div class="h-full w-full flex items-center justify-center p-xl relative z-10">
+<div class="max-w-md text-primary">
+<blockquote class="font-reader-body text-display-lg italic opacity-80 leading-tight">
+                    "Reading is a conversation. All books talk. But a good book listens as well."
+                </blockquote>
+</div>
+</div>
+</div>
+</body></html>

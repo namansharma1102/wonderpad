@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@0,400;0,600;1,400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#ffb690",
+                    "inverse-primary": "#ffb690",
+                    "surface-container-highest": "#d3e4fe",
+                    "tertiary-fixed-dim": "#cec6b2",
+                    "on-secondary-fixed": "#131b2e",
+                    "surface-container": "#e5eeff",
+                    "surface-container-high": "#dce9ff",
+                    "error-container": "#ffdad6",
+                    "primary": "#994200",
+                    "primary-container": "#c05400",
+                    "outline": "#8c7265",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#fffbff",
+                    "surface": "#f8f9ff",
+                    "on-secondary-container": "#5c647a",
+                    "tertiary-container": "#7a7463",
+                    "surface-dim": "#cbdbf5",
+                    "secondary": "#565e74",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-fixed": "#331100",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "surface-container-low": "#eff4ff",
+                    "on-surface": "#0b1c30",
+                    "on-surface-variant": "#584237",
+                    "inverse-on-surface": "#eaf1ff",
+                    "inverse-surface": "#213145",
+                    "on-tertiary": "#ffffff",
+                    "background": "#f8f9ff",
+                    "tertiary-fixed": "#ebe2cd",
+                    "on-tertiary-container": "#fffbff",
+                    "on-primary-fixed-variant": "#783200",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#615c4b",
+                    "outline-variant": "#e0c0b1",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#dae2fd",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#1f1b0f",
+                    "surface-tint": "#9d4400",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "secondary-fixed": "#dae2fd",
+                    "primary-fixed": "#ffdbca",
+                    "on-tertiary-fixed-variant": "#4b4637"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "sm": "8px",
+                    "xl": "40px",
+                    "reader-width": "720px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "reader-body": ["Newsreader"],
+                    "ui-body": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "reader-body": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "ui-body": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["13px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .sepia-mode { background-color: #F5ECD7; color: #5F4B32; }
+        .dark-mode-preview { background-color: #1A1A1A; color: #D1D1D1; }
+        .light-mode-preview { background-color: #FFFFFF; color: #333333; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-ui-body text-on-background antialiased">
+<!-- TopAppBar -->
+<header class="bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="text-xl font-bold text-orange-600 dark:text-orange-500 flex items-center gap-2 font-inter antialiased">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>Wonderpad</span>
+</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-orange-600 dark:text-orange-500 font-semibold hover:text-orange-700 transition-colors" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-orange-700 transition-colors" href="#">Features</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-orange-700 transition-colors" href="#">Pricing</a>
+</nav>
+<button class="bg-primary hover:opacity-80 transition-opacity text-white px-6 py-2 rounded-full font-semibold text-sm">
+                Get Started Free
+            </button>
+</div>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative pt-20 pb-32 overflow-hidden bg-gradient-to-b from-orange-50/50 to-background">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<h1 class="font-display-lg text-display-lg text-on-background mb-6 max-w-3xl mx-auto">
+                    Read every book the way it deserves.
+                </h1>
+<p class="font-ui-body text-headline-md text-secondary max-w-2xl mx-auto mb-10">
+                    Upload any PDF. Wonderpad turns it into a Wattpad-style reading experience — beautiful fonts, themes, and seamless chapter navigation.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center mb-20">
+<button class="bg-primary text-white px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-orange-200">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                        Upload a Book
+                    </button>
+<button class="border-2 border-primary text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-50 transition-all">
+                        See How It Works
+                    </button>
+</div>
+<!-- Reader Mockup -->
+<div class="relative max-w-[850px] mx-auto group">
+<div class="absolute -inset-1 bg-gradient-to-r from-orange-100 to-orange-200 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+<div class="relative bg-[#F5ECD7] rounded-xl border border-outline-variant shadow-2xl overflow-hidden aspect-[16/10] md:aspect-[16/9] flex flex-col">
+<!-- Reader Toolbar -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-[#E2D6C0]">
+<span class="material-symbols-outlined text-[#5F4B32]" data-icon="arrow_back">arrow_back</span>
+<span class="font-semibold text-[#5F4B32] font-ui-body">The Great Gatsby — Chapter 1</span>
+<span class="material-symbols-outlined text-[#5F4B32]" data-icon="settings">settings</span>
+</div>
+<!-- Reader Content -->
+<div class="flex-1 overflow-y-auto p-12 text-left max-w-reader-width mx-auto">
+<h2 class="font-reader-body text-4xl mb-8 text-[#3D3121] font-bold">Chapter 1</h2>
+<p class="font-reader-body text-reader-body text-[#5F4B32] mb-6">
+                                In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since. "Whenever you feel like criticizing anyone," he told me, "just remember that all the people in this world haven't had the advantages that you've had."
+                            </p>
+<p class="font-reader-body text-reader-body text-[#5F4B32]">
+                                He didn't say any more, but we've always been unusually communicative in a reserved way, and I understood that he meant a great deal more than that. In consequence, I'm inclined to reserve all judgements, a habit that has opened up many curious natures to me and also made me the victim of not a few veteran bores.
+                            </p>
+</div>
+<!-- Bottom Progress -->
+<div class="bg-white/20 backdrop-blur-sm p-4 flex items-center gap-4 px-12">
+<span class="text-xs font-bold text-[#5F4B32] uppercase tracking-wider">12%</span>
+<div class="flex-1 h-1 bg-[#5F4B32]/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[12%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Row -->
+<section class="py-24 bg-white">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="flex flex-col items-start gap-4 p-8 rounded-2xl hover:bg-surface-container-low transition-colors duration-300 border border-transparent hover:border-slate-100">
+<div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="upload_file">upload_file</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Upload Any PDF</h3>
+<p class="font-ui-body text-secondary">Drag and drop your ebook. We extract every chapter automatically and optimize it for a clean, distraction-free reading experience.</p>
+</div>
+<div class="flex flex-col items-start gap-4 p-8 rounded-2xl hover:bg-surface-container-low transition-colors duration-300 border border-transparent hover:border-slate-100">
+<div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="auto_stories">auto_stories</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Wattpad-Style Reader</h3>
+<p class="font-ui-body text-secondary">Beautiful fonts, sepia/dark/light themes, font size control — read in comfort on any screen without the PDF zooming struggle.</p>
+</div>
+<div class="flex flex-col items-start gap-4 p-8 rounded-2xl hover:bg-surface-container-low transition-colors duration-300 border border-transparent hover:border-slate-100">
+<div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="bookmark">bookmark</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Your Progress, Always Saved</h3>
+<p class="font-ui-body text-secondary">Pick up exactly where you left off, on any device. Your reading position and library sync across all your mobile and desktop devices.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Theme Preview Section -->
+<section class="py-32 bg-[#0F172A] text-white">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<h2 class="font-display-lg text-display-lg mb-16">Three themes. Zero eye strain.</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Light Mockup -->
+<div class="space-y-6">
+<div class="aspect-[9/16] bg-white rounded-3xl p-6 flex flex-col border-4 border-slate-700 shadow-2xl relative overflow-hidden">
+<div class="h-4 w-24 bg-slate-100 rounded-full mx-auto mb-8"></div>
+<div class="text-left space-y-4">
+<div class="h-6 w-3/4 bg-slate-200 rounded"></div>
+<div class="h-4 w-full bg-slate-100 rounded"></div>
+<div class="h-4 w-full bg-slate-100 rounded"></div>
+<div class="h-4 w-5/6 bg-slate-100 rounded"></div>
+<div class="h-4 w-full bg-slate-100 rounded"></div>
+</div>
+</div>
+<p class="font-label-sm text-label-sm uppercase tracking-widest text-slate-400">Daylight Mode</p>
+</div>
+<!-- Sepia Mockup -->
+<div class="space-y-6 scale-110 z-10">
+<div class="aspect-[9/16] bg-[#F5ECD7] rounded-3xl p-6 flex flex-col border-4 border-slate-700 shadow-2xl relative overflow-hidden">
+<div class="h-4 w-24 bg-[#E2D6C0] rounded-full mx-auto mb-8"></div>
+<div class="text-left space-y-4">
+<div class="h-6 w-3/4 bg-[#E2D6C0] rounded"></div>
+<div class="h-4 w-full bg-[#E2D6C0]/50 rounded"></div>
+<div class="h-4 w-full bg-[#E2D6C0]/50 rounded"></div>
+<div class="h-4 w-5/6 bg-[#E2D6C0]/50 rounded"></div>
+<div class="h-4 w-full bg-[#E2D6C0]/50 rounded"></div>
+</div>
+</div>
+<p class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Classic Sepia</p>
+</div>
+<!-- Dark Mockup -->
+<div class="space-y-6">
+<div class="aspect-[9/16] bg-[#1A1A1A] rounded-3xl p-6 flex flex-col border-4 border-slate-700 shadow-2xl relative overflow-hidden">
+<div class="h-4 w-24 bg-slate-800 rounded-full mx-auto mb-8"></div>
+<div class="text-left space-y-4">
+<div class="h-6 w-3/4 bg-slate-800 rounded"></div>
+<div class="h-4 w-full bg-slate-800/50 rounded"></div>
+<div class="h-4 w-full bg-slate-800/50 rounded"></div>
+<div class="h-4 w-5/6 bg-slate-800/50 rounded"></div>
+<div class="h-4 w-full bg-slate-800/50 rounded"></div>
+</div>
+</div>
+<p class="font-label-sm text-label-sm uppercase tracking-widest text-slate-400">Night Mode</p>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-24 bg-white overflow-hidden relative">
+<div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-orange-100 rounded-full blur-3xl opacity-30"></div>
+<div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+<h2 class="font-display-lg text-display-lg text-on-background mb-8">Start reading better today.</h2>
+<div class="p-12 bg-surface-container-lowest rounded-3xl border border-slate-100 shadow-sm">
+<div class="flex flex-col items-center gap-6">
+<div class="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center text-white shadow-xl shadow-orange-200">
+<span class="material-symbols-outlined text-4xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<p class="text-headline-md font-ui-body text-secondary">Join 20,000+ readers who transformed their PDF collection into a portable digital library.</p>
+<button class="bg-primary text-white px-10 py-5 rounded-full font-bold text-xl hover:scale-105 transition-transform">
+                            Create Your Free Account
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 full-width py-12">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-6 max-w-7xl mx-auto gap-4">
+<div class="flex flex-col items-center md:items-start gap-2">
+<div class="text-lg font-bold text-orange-600 dark:text-orange-500">Wonderpad</div>
+<p class="text-sm font-inter text-slate-500 dark:text-slate-400">Read the new way.</p>
+</div>
+<div class="flex gap-8">
+<a class="text-sm font-inter text-slate-500 hover:text-slate-900 dark:hover:text-slate-200" href="#">Privacy</a>
+<a class="text-sm font-inter text-slate-500 hover:text-slate-900 dark:hover:text-slate-200" href="#">Terms</a>
+<a class="text-sm font-inter text-slate-500 hover:text-slate-900 dark:hover:text-slate-200" href="#">Support</a>
+</div>
+<div class="text-sm font-inter text-slate-500 dark:text-slate-400">
+                © 2024 Wonderpad. All rights reserved.
+            </div>
+</div>
+</footer>
+</body></html>

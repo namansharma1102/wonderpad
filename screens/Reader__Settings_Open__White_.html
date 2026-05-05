@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "on-background": "#0b1c30",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-error-container": "#93000a",
+                    "secondary": "#565e74",
+                    "inverse-primary": "#ffb690",
+                    "background": "#f8f9ff",
+                    "tertiary-fixed-dim": "#cec6b2",
+                    "tertiary-fixed": "#ebe2cd",
+                    "on-primary-fixed-variant": "#783200",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-tertiary-fixed-variant": "#4b4637",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#cbdbf5",
+                    "on-tertiary-fixed": "#1f1b0f",
+                    "on-primary-container": "#fffbff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e5eeff",
+                    "secondary-fixed": "#dae2fd",
+                    "inverse-surface": "#213145",
+                    "tertiary-container": "#7a7463",
+                    "on-secondary-container": "#5c647a",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-surface-variant": "#584237",
+                    "primary": "#994200",
+                    "primary-fixed": "#ffdbca",
+                    "primary-container": "#c05400",
+                    "on-surface": "#0b1c30",
+                    "surface": "#f8f9ff",
+                    "outline-variant": "#e0c0b1",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-primary-fixed": "#331100",
+                    "outline": "#8c7265",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#615c4b",
+                    "surface-container-high": "#dce9ff",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-container": "#dae2fd",
+                    "surface-tint": "#9d4400",
+                    "surface-variant": "#d3e4fe",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#ffb690"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "40px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "container-max": "1280px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "reader-width": "720px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "ui-body": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "reader-body": ["Newsreader"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["13px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "ui-body": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "reader-body": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrim-active {
+            filter: brightness(0.85) blur(2px);
+            pointer-events: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#FAFAFA] text-[#1A1A1A] font-ui-body antialiased min-h-screen overflow-hidden">
+<!-- Top App Bar (Shared Component) -->
+<header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex justify-between items-center h-16 px-4 w-full docked full-width top-0 z-50 fixed">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500 cursor-pointer active:scale-95 transition-transform" data-icon="arrow_back">arrow_back</span>
+<h1 class="font-sans text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">Chapter Editor</h1>
+</div>
+<button class="text-orange-600 dark:text-orange-500 font-sans text-sm font-semibold hover:opacity-80 transition-opacity active:scale-95">Start Reading</button>
+</header>
+<!-- Reader Canvas (Content under Tray) -->
+<main class="pt-24 pb-32 px-6 max-w-[720px] mx-auto scrim-active transition-all duration-300">
+<article class="space-y-6">
+<header class="mb-12">
+<p class="text-label-sm font-label-sm text-orange-600 mb-2">CHAPTER FOUR</p>
+<h2 class="text-display-lg font-display-lg leading-tight">The Architecture of Silence</h2>
+</header>
+<p class="text-reader-body font-reader-body">
+                The library at the end of the world was not a place of dust and decay, but one of crystalline precision. Here, the echoes of forgotten thoughts resonated against walls carved from solidified light. I walked through the corridors, the soft thud of my boots the only disruption to a stillness that felt almost sacred. 
+            </p>
+<p class="text-reader-body font-reader-body">
+                Every shelf held a story that had never been told—not because they were secret, but because the language required to understand them had vanished along with the civilizations that spoke them. It was here I realized that knowledge was not just about accumulation, but about the space between what we know and what we feel.
+            </p>
+<div class="w-full h-[400px] rounded-lg overflow-hidden my-8 border border-slate-200">
+<img alt="Minimalist Library" class="w-full h-full object-cover" data-alt="A cinematic, high-angle shot of a sprawling minimalist library with towering white bookshelves and clean architectural lines. The scene is bathed in soft, diffused morning sunlight streaming through high windows, creating a bright and airy atmosphere. The color palette is dominated by off-whites and pale grays, reflecting a modern, premium light-mode aesthetic. The mood is tranquil, intellectual, and serene, emphasizing reading flow and clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5s8U1RPmeeGzlnhZpXjUXNaBBvc2OMkjWub8l8gz9wouXYjgXm5p7lgA_MSdMcrBieZgUVmyXbWsxidOgFC_N54HYRYC062QJWiVBa1Dh9c151mbYBU_SNV3eE--gP-IQd5g2x3g1HDf8EcEjX5nW68hrM-o0fzsTAUGq_6aXpT3R24zKuo4ObTdMMrItMOFNA3ZW67WDtCkO2fr0XyMgDwCM0Dx3YY6gVvWMIVD6cK8g5zLC1W28rn3r3ea3wMZAvtxFT2LlT7M"/>
+</div>
+<p class="text-reader-body font-reader-body">
+                I reached for a volume bound in what appeared to be shifting silk. As my fingers brushed the spine, a warmth radiated through my palm, a digital pulse from a dead era.
+            </p>
+</article>
+</main>
+<!-- Settings Tray Backdrop/Overlay -->
+<div class="fixed inset-0 bg-black/10 z-[60]"></div>
+<!-- Settings Tray (Bottom Sheet) -->
+<section class="fixed bottom-0 left-0 right-0 z-[70] bg-white rounded-t-[16px] shadow-[0_-8px_30px_rgb(0,0,0,0.12)] border-t border-slate-100 transform translate-y-0 transition-transform duration-500 ease-out max-w-lg mx-auto">
+<!-- Drag Handle -->
+<div class="w-full flex justify-center py-3">
+<div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+</div>
+<div class="px-6 pb-10 space-y-8">
+<!-- Row 1: Background -->
+<div class="space-y-4">
+<label class="font-label-sm text-label-sm text-slate-400 uppercase tracking-widest">Background</label>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-center gap-2">
+<button class="w-12 h-12 rounded-full bg-white border-2 border-orange-600 ring-4 ring-orange-50 flex items-center justify-center transition-transform active:scale-90">
+<span class="material-symbols-outlined text-orange-600" data-icon="check" data-weight="fill">check</span>
+</button>
+<span class="text-[11px] font-medium text-slate-900">White</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-12 h-12 rounded-full bg-[#F4ECD8] border border-slate-200 transition-transform active:scale-90"></button>
+<span class="text-[11px] font-medium text-slate-500">Sepia</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-12 h-12 rounded-full bg-[#1A1A1A] border border-slate-800 transition-transform active:scale-90"></button>
+<span class="text-[11px] font-medium text-slate-500">Dark</span>
+</div>
+</div>
+</div>
+<!-- Row 2: Font Size -->
+<div class="space-y-4">
+<label class="font-label-sm text-label-sm text-slate-400 uppercase tracking-widest">Font Size</label>
+<div class="flex items-center bg-slate-50 rounded-full p-1 border border-slate-100">
+<button class="flex-1 flex justify-center py-3 text-slate-600 hover:bg-white rounded-full transition-all active:scale-95">
+<span class="text-sm font-bold">Aa-</span>
+</button>
+<div class="w-12 text-center font-bold text-slate-900">18</div>
+<button class="flex-1 flex justify-center py-3 text-slate-600 hover:bg-white rounded-full transition-all active:scale-95">
+<span class="text-lg font-bold">Aa+</span>
+</button>
+</div>
+</div>
+<!-- Row 3: Font -->
+<div class="space-y-4">
+<label class="font-label-sm text-label-sm text-slate-400 uppercase tracking-widest">Font Family</label>
+<div class="grid grid-cols-3 gap-3">
+<button class="py-3 px-4 rounded-full bg-orange-600 text-white font-reader-body text-base font-semibold shadow-md active:scale-95 transition-transform">
+                        Serif
+                    </button>
+<button class="py-3 px-4 rounded-full bg-slate-50 text-slate-600 font-ui-body text-sm font-medium border border-slate-200 active:scale-95 transition-transform">
+                        Sans
+                    </button>
+<button class="py-3 px-4 rounded-full bg-slate-50 text-slate-600 font-mono text-xs font-medium border border-slate-200 active:scale-95 transition-transform">
+                        Mono
+                    </button>
+</div>
+</div>
+<!-- Row 4: Spacing Icons -->
+<div class="space-y-4">
+<label class="font-label-sm text-label-sm text-slate-400 uppercase tracking-widest">Spacing</label>
+<div class="flex justify-between items-center px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
+<button class="p-3 text-slate-400 hover:text-orange-600 transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="format_line_spacing">format_line_spacing</span>
+</button>
+<div class="w-px h-6 bg-slate-200"></div>
+<button class="p-3 text-orange-600 transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="align_horizontal_left">align_horizontal_left</span>
+</button>
+<div class="w-px h-6 bg-slate-200"></div>
+<button class="p-3 text-slate-400 hover:text-orange-600 transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="reorder">reorder</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Nav Bar (Shared Component - Hidden in Reader Context usually, but mapped as requested) -->
+<!-- The prompt implies we are in a sub-page/focused state, so the BottomNavBar should be suppressed as per "The Destination Rule" 
+         However, to maintain "Shell Visibility" logic if needed, we define it but keep it below the tray. -->
+<nav class="fixed bottom-0 w-full z-40 flex justify-around items-center h-20 px-2 pb-safe bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 opacity-0 pointer-events-none">
+<div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="text-[10px] font-medium font-sans">Library</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[10px] font-medium font-sans">Discover</span>
+</div>
+</nav>
+</body></html>

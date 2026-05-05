@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Wonderpad Reader - The Great Gatsby</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "on-background": "#0b1c30",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-error-container": "#93000a",
+                    "secondary": "#565e74",
+                    "inverse-primary": "#ffb690",
+                    "background": "#f8f9ff",
+                    "tertiary-fixed-dim": "#cec6b2",
+                    "tertiary-fixed": "#ebe2cd",
+                    "on-primary-fixed-variant": "#783200",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-tertiary-fixed-variant": "#4b4637",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#cbdbf5",
+                    "on-tertiary-fixed": "#1f1b0f",
+                    "on-primary-container": "#fffbff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e5eeff",
+                    "secondary-fixed": "#dae2fd",
+                    "inverse-surface": "#213145",
+                    "tertiary-container": "#7a7463",
+                    "on-secondary-container": "#5c647a",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-surface-variant": "#584237",
+                    "primary": "#994200",
+                    "primary-fixed": "#ffdbca",
+                    "primary-container": "#c05400",
+                    "on-surface": "#0b1c30",
+                    "surface": "#f8f9ff",
+                    "outline-variant": "#e0c0b1",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-primary-fixed": "#331100",
+                    "outline": "#8c7265",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#615c4b",
+                    "surface-container-high": "#dce9ff",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-container": "#dae2fd",
+                    "surface-tint": "#9d4400",
+                    "surface-variant": "#d3e4fe",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#ffb690",
+                    "sepia-bg": "#F5ECD7",
+                    "sepia-text": "#5C4A1E"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "40px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "container-max": "1280px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "reader-width": "720px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "ui-body": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "reader-body": ["Newsreader"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["13px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "ui-body": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "reader-body": ["18px", {"lineHeight": "1.75", "letterSpacing": "0", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #F5ECD7;
+            color: #5C4A1E;
+            -webkit-font-smoothing: antialiased;
+        }
+        .reader-content p + p {
+            text-indent: 1.5em;
+        }
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top);
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-reader-body selection:bg-orange-200 selection:text-orange-900 overflow-x-hidden">
+<!-- Progress Indicator (Minimalist) -->
+<div class="fixed top-0 left-0 w-full h-[2px] z-[60] bg-black/5">
+<div class="h-full bg-primary" style="width: 35%;"></div>
+</div>
+<!-- Main Reader Canvas -->
+<main class="min-h-screen safe-area-top safe-area-bottom px-lg flex flex-col items-center">
+<article class="w-full max-w-reader-width py-xl">
+<!-- Header Section -->
+<header class="mb-xl text-center">
+<p class="font-label-sm text-label-sm uppercase tracking-[0.2em] opacity-60 mb-sm">Chapter III</p>
+<h1 class="font-reader-body text-[32px] font-bold leading-tight italic">
+                    The Great Gatsby
+                </h1>
+<div class="w-12 h-[1px] bg-sepia-text/20 mx-auto mt-lg"></div>
+</header>
+<!-- Book Content -->
+<div class="reader-content text-reader-body space-y-0 text-justify">
+<p>There was music from my neighbor’s house through the summer nights. In his blue gardens men and girls came and went like moths among the whisperings and the champagne and the stars. At high tide in the afternoon I watched his guests diving from the tower of his raft, or taking the sun on the hot sand of his beach while his two motor-boats slit the waters of the Sound, drawing aquaplanes over cataracts of foam.</p>
+<p>On week-ends his Rolls-Royce became an omnibus, bearing parties to and from the city between nine in the morning and long past midnight, while his station wagon scampered like a brisk yellow bug to meet all trains. And on Mondays eight servants, including an extra gardener, toiled all day with mops and scrubbing-brushes and hammers and garden-shears, repairing the ravages of the night before.</p>
+<!-- Inline Image Component -->
+<figure class="my-xl">
+<div class="relative group">
+<img alt="Vintage Luxury Car" class="w-full h-auto rounded-lg shadow-sm border border-sepia-text/10" data-alt="A meticulously restored 1920s luxury vintage motorcar parked on a manicured gravel driveway in front of a sprawling Gatsby-style estate. The vehicle features polished chrome details, a deep cream-colored body, and elegant wire-spoke wheels. The lighting is warm and golden, reminiscent of a late summer sunset, casting long, soft shadows. The overall aesthetic is one of opulent jazz-age sophistication, with a color palette of warm sepia, cream, and mahogany." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvpKnZi-MldcjNplyHGCvkB8q8IGoF8Wt_iMRbLMZBI0ozlada2MXjdWszVqraT_FsuO9A-uC5prHupuEMjYp0QwpyBuxjdH4uRib_i-u3blrJpJQnss3FeNJBkLaT6i57-iNyEGh-ZE45HR98xzZf960vMZMh3B7crdvYqtoZQea71J2qj4rye57rn_Mv6Gm87i9VqEm3Ck32VAzO6FMqdWoYneaIv-8HY8_C0hAA_tNf8LigxUYtN_DWCLGhYzIIEUHPnMmMAZg"/>
+</div>
+<figcaption class="mt-sm text-center font-label-sm text-[12px] italic opacity-50 italic">
+                        The station wagon scampered like a brisk yellow bug.
+                    </figcaption>
+</figure>
+<p>Every Friday five crates of oranges and lemons arrived from a fruiterer in New York—every Monday these same oranges and lemons left his back door in a pyramid of pulpless halves. There was a machine in the kitchen which could extract the juice of two hundred oranges in half an hour if a little button was pressed two hundred times by a butler’s thumb.</p>
+<p>At least once a fortnight a corps of caterers came down with several hundred feet of canvas and enough colored lights to make a Christmas tree of Gatsby’s enormous garden. On buffet tables, garnished with glistening hors-d’oeuvre, spiced baked hams crowded against salads of harlequin designs and pastry pigs and turkeys bewitched to a dark gold. In the main hall a bar with a real brass rail was set up, and stocked with gins and liquors and with cordials so long forgotten that most of his female guests were too young to know one from another.</p>
+</div>
+<!-- Reading Navigation Footer (Subtle) -->
+<footer class="mt-xl pt-lg border-t border-sepia-text/10 flex justify-between items-center opacity-40">
+<span class="font-label-sm text-[11px]">PAGE 42 OF 182</span>
+<span class="font-label-sm text-[11px] uppercase tracking-wider">Wonderpad Reader</span>
+</footer>
+</article>
+</main>
+<!-- Contextual Reader Controls (Floating & Pill-Shaped) -->
+<!-- Note: Following the "Reader Controls" instruction from Style Guidance for floating UI -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-6 py-3 shadow-2xl transition-opacity hover:opacity-100 opacity-0 group md:opacity-20">
+<div class="flex items-center space-x-6">
+<button class="flex flex-col items-center justify-center text-sepia-text/60 hover:text-sepia-text transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="format_size">format_size</span>
+</button>
+<div class="h-4 w-[1px] bg-sepia-text/20"></div>
+<div class="flex space-x-3">
+<button class="w-6 h-6 rounded-full bg-white border border-slate-200 shadow-inner"></button>
+<button class="w-6 h-6 rounded-full bg-[#F5ECD7] border-2 border-primary shadow-inner"></button>
+<button class="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 shadow-inner"></button>
+</div>
+<div class="h-4 w-[1px] bg-sepia-text/20"></div>
+<button class="flex flex-col items-center justify-center text-sepia-text/60 hover:text-sepia-text transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="bookmarks">bookmarks</span>
+</button>
+</div>
+</div>
+<!-- Hidden shared components as per instruction for data integrity but suppressed based on Reading Mode context -->
+<div class="hidden">
+<div data-active="Chapter Editor" data-component="TopAppBar"></div>
+<div data-active="Library" data-component="BottomNavBar"></div>
+</div>
+</body></html>
