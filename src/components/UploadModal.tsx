@@ -180,7 +180,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
             className="px-6 py-2 rounded-full bg-[#E8690A] text-white font-bold text-sm hover:bg-[#c05400] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-['Inter']"
           >
             {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isUploading ? 'Uploading...' : 'Upload & Process'}
+            {isUploading ? 'Processing...' : 'Upload & Process'}
           </button>
         </div>
       </div>

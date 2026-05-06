@@ -56,7 +56,6 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error('Database insert error:', dbError)
-      // Cleanup storage if DB insert fails
       await supabase.storage.from('books').remove([filePath])
       return NextResponse.json({ error: 'Failed to create book record.' }, { status: 500 })
     }
@@ -64,13 +63,9 @@ export async function POST(request: Request) {
     // Convert File to ArrayBuffer for processing
     const arrayBuffer = await file.arrayBuffer()
 
-    // Process PDF asynchronously (do not await, let it run in background if possible, 
-    // or await it if we want to return response only after processing)
-    // We'll await it for now since we set maxDuration = 60, but ideal architecture
-    // uses a queue or webhook.
-    processPdf(bookId, user.id, arrayBuffer).catch((err) => {
-      console.error(`Failed to process book ${bookId}:`, err)
-    })
+    // AWAIT the processing — on Vercel serverless, fire-and-forget
+    // doesn't work because the function dies when the response is sent.
+    await processPdf(bookId, user.id, arrayBuffer)
 
     return NextResponse.json({ success: true, bookId })
   } catch (error: any) {

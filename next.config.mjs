@@ -7,6 +7,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  webpack: (config) => {
+    // pdfjs-dist has an optional canvas dependency for Node.js environments.
+    // We don't use it, so tell webpack to ignore it.
+    config.resolve.alias.canvas = false
+    return config
+  },
 }
 
 const withPWA = withPWAInit({
