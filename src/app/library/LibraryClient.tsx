@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Plus, Loader2, Book } from 'lucide-react'
 import UploadModal from '@/components/UploadModal'
 
@@ -24,20 +24,28 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
   const [books, setBooks] = useState<BookData[]>(initialBooks)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
 
-  // Poll for any books that are currently 'processing'
+  // Poll for any books that are currently 'processing' (legacy, in case any exist)
+  const processingIdsRef = useRef<string[]>([])
+
   useEffect(() => {
     const processingBooks = books.filter((b) => b.status === 'processing')
-    if (processingBooks.length === 0) return
+    const processingIds = processingBooks.map((b) => b.id)
+
+    // Only restart polling if the set of processing IDs actually changed
+    if (JSON.stringify(processingIds) === JSON.stringify(processingIdsRef.current)) return
+    processingIdsRef.current = processingIds
+
+    if (processingIds.length === 0) return
 
     const interval = setInterval(() => {
-      processingBooks.forEach(async (book) => {
+      processingIds.forEach(async (bookId) => {
         try {
-          const res = await fetch(`/api/books/${book.id}/status`)
+          const res = await fetch(`/api/books/${bookId}/status`)
           if (res.ok) {
             const data = await res.json()
             if (data.status !== 'processing') {
               setBooks((prev) =>
-                prev.map((b) => (b.id === book.id ? { ...b, status: data.status, title: data.title } : b))
+                prev.map((b) => (b.id === bookId ? { ...b, status: data.status, title: data.title } : b))
               )
             }
           }
@@ -45,14 +53,16 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
           console.error('Polling error', e)
         }
       })
-    }, 3000) // Poll every 3 seconds
+    }, 3000)
 
     return () => clearInterval(interval)
   }, [books])
 
   const handleUploadSuccess = (bookId: string) => {
     setIsUploadModalOpen(false)
-    setBooks((prev) => [...prev, { id: bookId, title: 'Processing...', status: 'processing' }])
+    // New flow: book is already 'ready' when the server responds
+    // Reload to get the full book data from the server
+    window.location.reload()
   }
 
   return (

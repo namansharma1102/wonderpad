@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { UploadCloud, File, X, Loader2 } from 'lucide-react'
+import { UploadCloud, File as FileIcon, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { processClientPdf } from '@/lib/clientPdfProcessor'
 
 interface UploadModalProps {
   isOpen: boolean
@@ -10,11 +11,14 @@ interface UploadModalProps {
   onUploadSuccess?: (bookId: string) => void
 }
 
+type UploadStage = 'idle' | 'extracting' | 'uploading' | 'done' | 'error'
+
 export default function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
+  const [stage, setStage] = useState<UploadStage>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -62,13 +66,24 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
   const handleUpload = async () => {
     if (!file) return
 
-    setIsUploading(true)
     setError(null)
 
-    const formData = new FormData()
-    formData.append('file', file)
-
     try {
+      // Step 1: Extract text in the browser (no time limit!)
+      setStage('extracting')
+      setProgress('Reading PDF pages...')
+      const result = await processClientPdf(file)
+      setProgress(`Found ${result.chapters.length} chapter(s) across ${result.pageCount} pages`)
+
+      // Step 2: Upload file + chapters to server
+      setStage('uploading')
+      setProgress('Saving to cloud...')
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('chapters', JSON.stringify(result.chapters))
+      formData.append('author', result.author)
+
       const response = await fetch('/api/books/upload', {
         method: 'POST',
         body: formData,
@@ -80,18 +95,35 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
         throw new Error(data.error || 'Upload failed')
       }
 
-      setFile(null)
-      if (onUploadSuccess) {
-        onUploadSuccess(data.bookId)
-      } else {
-        router.refresh()
-        onClose()
-      }
+      // Step 3: Done!
+      setStage('done')
+      setProgress('Book ready!')
+
+      setTimeout(() => {
+        setFile(null)
+        setStage('idle')
+        setProgress('')
+        if (onUploadSuccess) {
+          onUploadSuccess(data.bookId)
+        } else {
+          router.refresh()
+          onClose()
+        }
+      }, 800)
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred during upload.')
-    } finally {
-      setIsUploading(false)
+      setStage('error')
+      setError(err.message || 'An unexpected error occurred.')
     }
+  }
+
+  const isProcessing = stage === 'extracting' || stage === 'uploading'
+
+  const stageLabel = {
+    idle: 'Upload & Process',
+    extracting: 'Extracting text...',
+    uploading: 'Uploading...',
+    done: 'Done!',
+    error: 'Upload & Process',
   }
 
   return (
@@ -102,7 +134,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
           <h2 className="font-semibold text-[#0b1c30] text-lg font-['Inter']">Upload Book</h2>
           <button
             onClick={onClose}
-            disabled={isUploading}
+            disabled={isProcessing}
             className="text-[#565e74] hover:bg-[#f8f9ff] p-2 rounded-full transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
@@ -137,23 +169,37 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
               />
             </div>
           ) : (
-            <div className="border border-[#e5eeff] rounded-xl p-4 flex items-center bg-[#f8f9ff]">
-              <div className="bg-[#dae2fd] p-3 rounded-lg mr-4">
-                <File className="w-6 h-6 text-[#131b2e]" />
+            <div className="space-y-4">
+              <div className="border border-[#e5eeff] rounded-xl p-4 flex items-center bg-[#f8f9ff]">
+                <div className="bg-[#dae2fd] p-3 rounded-lg mr-4">
+                  <FileIcon className="w-6 h-6 text-[#131b2e]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#0b1c30] font-medium truncate font-['Inter']">{file.name}</p>
+                  <p className="text-[#584237] text-sm font-['Inter']">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+                {!isProcessing && stage !== 'done' && (
+                  <button
+                    onClick={() => { setFile(null); setStage('idle'); setError(null) }}
+                    className="text-[#ba1a1a] p-2 hover:bg-[#ffdad6] rounded-full transition-colors ml-2"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[#0b1c30] font-medium truncate font-['Inter']">{file.name}</p>
-                <p className="text-[#584237] text-sm font-['Inter']">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
-              </div>
-              {!isUploading && (
-                <button
-                  onClick={() => setFile(null)}
-                  className="text-[#ba1a1a] p-2 hover:bg-[#ffdad6] rounded-full transition-colors ml-2"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+
+              {/* Progress indicator */}
+              {(isProcessing || stage === 'done') && (
+                <div className="flex items-center gap-3 p-3 bg-[#f0fdf4] rounded-lg">
+                  {stage === 'done' ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                  ) : (
+                    <Loader2 className="w-5 h-5 animate-spin text-[#E8690A] shrink-0" />
+                  )}
+                  <p className="text-sm font-medium text-[#0b1c30] font-['Inter']">{progress}</p>
+                </div>
               )}
             </div>
           )}
@@ -169,18 +215,18 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
         <div className="p-4 bg-[#f8f9ff] border-t border-[#e5eeff] flex justify-end gap-3">
           <button
             onClick={onClose}
-            disabled={isUploading}
+            disabled={isProcessing}
             className="px-4 py-2 rounded-full border border-[#8c7265] text-[#0b1c30] hover:bg-[#eaf1ff] transition-colors font-semibold text-sm disabled:opacity-50 font-['Inter']"
           >
             Cancel
           </button>
           <button
             onClick={handleUpload}
-            disabled={!file || isUploading}
+            disabled={!file || isProcessing || stage === 'done'}
             className="px-6 py-2 rounded-full bg-[#E8690A] text-white font-bold text-sm hover:bg-[#c05400] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-['Inter']"
           >
-            {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isUploading ? 'Processing...' : 'Upload & Process'}
+            {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
+            {stageLabel[stage]}
           </button>
         </div>
       </div>

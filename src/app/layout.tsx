@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -13,11 +13,14 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+export const viewport: Viewport = {
+  themeColor: '#E8690A',
+}
+
 export const metadata: Metadata = {
   title: 'Wonderpad',
   description: 'Your beautiful reading experience',
   manifest: '/manifest.json',
-  themeColor: '#E8690A',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

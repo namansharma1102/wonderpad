@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
-import { processPdf } from '@/lib/pdfProcessor'
-
-export const maxDuration = 60 // Allows the function to run up to 60 seconds
 
 export async function POST(request: Request) {
   try {
@@ -16,6 +14,8 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const chaptersJson = formData.get('chapters') as string
+    const author = formData.get('author') as string || 'Unknown Author'
 
     if (!file || file.type !== 'application/pdf') {
       return NextResponse.json({ error: 'Invalid file type. Only PDF is supported.' }, { status: 400 })
@@ -25,11 +25,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'File size exceeds 50MB limit.' }, { status: 400 })
     }
 
+    if (!chaptersJson) {
+      return NextResponse.json({ error: 'No chapter data provided.' }, { status: 400 })
+    }
+
+    let chapters: Array<{ index: number; title: string; startPage: number; content: string }>
+    try {
+      chapters = JSON.parse(chaptersJson)
+    } catch {
+      return NextResponse.json({ error: 'Invalid chapter data.' }, { status: 400 })
+    }
+
     const bookId = uuidv4()
     const filePath = `books/${user.id}/${bookId}.pdf`
 
-    // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
+    // Upload PDF to Supabase Storage
+    const admin = createAdminClient()
+
+    const { error: uploadError } = await admin.storage
       .from('books')
       .upload(filePath, file, {
         contentType: 'application/pdf',
@@ -41,33 +54,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to upload file to storage.' }, { status: 500 })
     }
 
-    // Insert Book Record
-    const title = file.name.replace('.pdf', '')
-    const { error: dbError } = await supabase
+    // Insert book record (status = 'ready' immediately since chapters are already extracted)
+    const title = file.name.replace(/\.pdf$/i, '')
+    const { error: dbError } = await admin
       .from('books')
       .insert({
         id: bookId,
         user_id: user.id,
         title: title,
-        status: 'processing',
+        author: author,
+        status: 'ready',
         storage_path: filePath,
+        cover_path: null,
         created_at: new Date().toISOString()
       })
 
     if (dbError) {
       console.error('Database insert error:', dbError)
-      await supabase.storage.from('books').remove([filePath])
+      await admin.storage.from('books').remove([filePath])
       return NextResponse.json({ error: 'Failed to create book record.' }, { status: 500 })
     }
 
-    // Convert File to ArrayBuffer for processing
-    const arrayBuffer = await file.arrayBuffer()
+    // Bulk insert chapters
+    const chapterRecords = chapters.map((ch) => ({
+      book_id: bookId,
+      index: ch.index,
+      title: ch.title,
+      start_page: ch.startPage,
+      content: ch.content,
+    }))
 
-    // AWAIT the processing — on Vercel serverless, fire-and-forget
-    // doesn't work because the function dies when the response is sent.
-    await processPdf(bookId, user.id, arrayBuffer)
+    if (chapterRecords.length > 0) {
+      const { error: chaptersError } = await admin
+        .from('chapters')
+        .insert(chapterRecords)
 
-    return NextResponse.json({ success: true, bookId })
+      if (chaptersError) {
+        console.error('Chapters insert error:', chaptersError)
+        // Cleanup on failure
+        await admin.from('books').delete().eq('id', bookId)
+        await admin.storage.from('books').remove([filePath])
+        return NextResponse.json({ error: 'Failed to save chapters.' }, { status: 500 })
+      }
+    }
+
+    return NextResponse.json({ success: true, bookId, status: 'ready' })
   } catch (error: any) {
     console.error('Upload handler error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
