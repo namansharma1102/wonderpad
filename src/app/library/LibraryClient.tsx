@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import { Plus, Loader2, Book } from 'lucide-react'
+import React, { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import UploadModal from '@/components/UploadModal'
 
 interface BookData {
@@ -9,7 +9,7 @@ interface BookData {
   title: string
   status: string
   author?: string
-  cover_path?: string
+  cover_url?: string
   progress?: {
     chapter_index: number
     scroll_percent: number
@@ -22,159 +22,185 @@ interface LibraryClientProps {
 
 export default function LibraryClient({ initialBooks }: LibraryClientProps) {
   const [books, setBooks] = useState<BookData[]>(initialBooks)
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
+  const router = useRouter()
 
-  // Poll for any books that are currently 'processing' (legacy, in case any exist)
-  const processingIdsRef = useRef<string[]>([])
+  const handleUploadComplete = useCallback(() => {
+    setShowUpload(false)
+    router.refresh()
+  }, [router])
 
-  useEffect(() => {
-    const processingBooks = books.filter((b) => b.status === 'processing')
-    const processingIds = processingBooks.map((b) => b.id)
-
-    // Only restart polling if the set of processing IDs actually changed
-    if (JSON.stringify(processingIds) === JSON.stringify(processingIdsRef.current)) return
-    processingIdsRef.current = processingIds
-
-    if (processingIds.length === 0) return
-
-    const interval = setInterval(() => {
-      processingIds.forEach(async (bookId) => {
-        try {
-          const res = await fetch(`/api/books/${bookId}/status`)
-          if (res.ok) {
-            const data = await res.json()
-            if (data.status !== 'processing') {
-              setBooks((prev) =>
-                prev.map((b) => (b.id === bookId ? { ...b, status: data.status, title: data.title } : b))
-              )
-            }
-          }
-        } catch (e) {
-          console.error('Polling error', e)
-        }
-      })
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [books])
-
-  const handleUploadSuccess = (bookId: string) => {
-    setIsUploadModalOpen(false)
-    // New flow: book is already 'ready' when the server responds
-    // Reload to get the full book data from the server
-    window.location.reload()
-  }
+  const readyBooks = books.filter((b) => b.status === 'ready')
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-[#0b1c30] font-['Inter']">Your Library</h1>
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="flex items-center gap-2 bg-[#E8690A] text-white px-5 py-2.5 rounded-full font-bold font-['Inter'] hover:bg-[#c05400] transition-colors shadow-sm"
+    <div className="bg-background font-ui-body text-on-background min-h-screen pb-24 md:pb-0">
+      {/* TopAppBar */}
+      <header className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 docked full-width top-0 z-50 font-sans antialiased tracking-tight sticky">
+        <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-4">
+            <span className="material-symbols-outlined text-[#E8690A] cursor-pointer">menu</span>
+            <span className="text-2xl font-black text-[#E8690A] tracking-tighter">Wonderpad</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <a className="text-[#E8690A] font-semibold hover:text-[#E8690A] transition-colors" href="#">Library</a>
+            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Discover</a>
+            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Stats</a>
+            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="/settings">Settings</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <div 
+              onClick={() => router.push('/settings')}
+              className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden cursor-pointer active:opacity-70 transition-opacity"
+            >
+              <span className="text-[#E8690A] font-bold text-sm">JS</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        {/* Title & Upload Button */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <h1 className="font-display-lg text-[28px] font-bold text-on-surface mb-2">My Library</h1>
+            <p className="text-secondary font-ui-body">Continue where you left off in your literary journey.</p>
+          </div>
+          <button 
+            onClick={() => setShowUpload(true)}
+            className="flex items-center justify-center gap-2 px-8 py-4 bg-[#E8690A] text-white font-bold rounded-full shadow-lg shadow-orange-500/20 hover:bg-[#c05400] transition-all active:scale-95 group"
           >
-            <Plus className="w-5 h-5" />
-            Upload Book
+            <span className="material-symbols-outlined">add</span>
+            <span>Upload a Book</span>
           </button>
         </div>
 
-        {books.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-[#bec6e0] rounded-xl bg-[#ffffff]">
-            <h2 className="text-xl font-semibold text-[#0b1c30] font-['Inter']">Your Library is empty</h2>
-            <p className="mt-2 text-[#584237] font-['Inter']">Upload your first book to get started.</p>
+        {/* Upload Zone */}
+        <section className="mb-16">
+          <div className="relative group cursor-pointer" onClick={() => setShowUpload(true)}>
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#E8690A] to-orange-300 rounded-lg blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+            <div className="relative flex flex-col items-center justify-center py-12 px-6 border-2 border-dashed border-outline-variant bg-white rounded-lg transition-colors hover:border-[#E8690A]/50">
+              <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-[#E8690A] text-3xl">cloud_upload</span>
+              </div>
+              <p className="text-on-surface font-semibold text-lg mb-1">Drag and drop your files here</p>
+              <p className="text-secondary text-sm">Supports PDF, EPUB, and MOBI (Max 50MB)</p>
+            </div>
           </div>
+        </section>
+
+        {/* Book Grid or Empty State */}
+        {readyBooks.length === 0 ? (
+          <section className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-48 h-48 mb-8">
+              <img 
+                className="w-full h-full object-contain" 
+                alt="Empty library illustration"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy035I2XPs0v2Qx5ey5jAiuucA-606zrOlDP_pw8nmNCeqguSpn3RUDS5lELQKSBqp_ucdlU058fhUq44mjxiyX4j0v6VnGmLXiX7rPdHQ-mRDrWcm9UE6EM1zgxMlrtl1EgIVbNChMALimvCzPOhZDeTSkNh7OKPF-on4dtRBKjfMX2BO4ijrvkZV0rb-cDyxngctV2XHYghmM9XRnWQt_amPJEzR_gHiO7etsVnDIDdbadzPyNZhO67IdhArTmvvNyYPxcFjiwU" 
+              />
+            </div>
+            <h2 className="font-headline-md text-2xl font-bold text-on-surface mb-2">Your library is empty</h2>
+            <p className="text-secondary mb-8 max-w-md">Upload your first PDF or EPUB to start building your personal sanctuary of knowledge.</p>
+            <button 
+              onClick={() => setShowUpload(true)}
+              className="px-10 py-4 bg-[#E8690A] text-white font-bold rounded-full hover:bg-[#c05400] transition-all"
+            >
+              Upload Your First Book
+            </button>
+          </section>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {books.map((book) => {
-              const coverUrl = book.cover_path 
-                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/books/${book.cover_path}`
-                : null
-              
-              const isStarted = !!book.progress
+          <section>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+              {readyBooks.map((book) => {
+                const progressPct = book.progress
+                  ? Math.round((book.progress.chapter_index / 20) * 100) // Approximate
+                  : 0
 
-              return (
-                <div
-                  key={book.id}
-                  className="bg-[#ffffff] border border-[#e5eeff] rounded-2xl overflow-hidden shadow-sm hover:shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all flex h-48 md:h-56"
-                >
-                  {book.status === 'processing' ? (
-                    <div className="flex-1 flex flex-col items-center justify-center bg-[#f8f9ff]">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#E8690A] mb-4" />
-                      <p className="text-[#0b1c30] font-medium font-['Inter'] animate-pulse">Processing PDF...</p>
-                    </div>
-                  ) : book.status === 'failed' ? (
-                    <div className="flex-1 flex flex-col items-center justify-center bg-[#ffdad6]">
-                      <p className="text-[#93000a] font-medium font-['Inter']">Processing Failed</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-1">
-                      {/* Cover Image */}
-                      <div className="w-1/3 bg-[#dae2fd] border-r border-[#e5eeff] relative overflow-hidden flex items-center justify-center shrink-0">
-                        {coverUrl ? (
-                          <img src={coverUrl} alt={book.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <Book className="w-12 h-12 text-[#565e74]" />
-                        )}
-                      </div>
+                return (
+                  <div 
+                    key={book.id} 
+                    className="group cursor-pointer"
+                    onClick={() => {
+                      const chapterIdx = book.progress?.chapter_index || 1
+                      router.push(`/read/${book.id}/${chapterIdx}`)
+                    }}
+                  >
+                    <div className="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+                      {book.cover_url ? (
+                        <img 
+                          className="w-full h-full object-cover" 
+                          alt={book.title} 
+                          src={book.cover_url}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex flex-col items-center justify-center p-4">
+                          <span className="material-symbols-outlined text-[#E8690A] text-4xl mb-2">menu_book</span>
+                          <span className="text-xs text-center font-semibold text-[#E8690A]/70 line-clamp-3">{book.title}</span>
+                        </div>
+                      )}
                       
-                      {/* Book Details */}
-                      <div className="w-2/3 p-5 flex flex-col justify-between">
-                        <div>
-                          <h3 className="font-bold text-[#0b1c30] text-lg leading-tight line-clamp-2 font-['Inter']" title={book.title}>
-                            {book.title}
-                          </h3>
-                          {book.author && (
-                            <p className="text-[#565e74] text-sm mt-1 font-['Inter'] truncate">
-                              {book.author}
-                            </p>
-                          )}
-                        </div>
+                      {/* Manage Button on Hover */}
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/manage/${book.id}`)
+                        }}
+                        className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-slate-400 hover:text-[#E8690A] opacity-0 group-hover:opacity-100 transition-all active:scale-90 z-10"
+                      >
+                        <span className="material-symbols-outlined text-base">settings</span>
+                      </div>
 
-                        <div className="mt-4">
-                          {isStarted ? (
-                            <div className="mb-3">
-                              <div className="flex justify-between text-xs text-[#565e74] mb-1 font-['Inter'] font-medium">
-                                <span>Chapter {book.progress!.chapter_index}</span>
-                                <span>{Math.round(book.progress!.scroll_percent)}%</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-[#e5eeff] rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-[#E8690A]" 
-                                  style={{ width: `${book.progress!.scroll_percent}%` }}
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-
-                          <button 
-                            onClick={() => {
-                              if (isStarted) {
-                                window.location.href = `/read/${book.id}/${book.progress!.chapter_index}`
-                              } else {
-                                window.location.href = `/read/${book.id}/1`
-                              }
-                            }}
-                            className="w-full bg-transparent border-2 border-[#8c7265] text-[#0b1c30] font-bold py-2 rounded-full hover:bg-[#f8f9ff] hover:border-[#0b1c30] transition-colors text-sm font-['Inter']"
-                          >
-                            {isStarted ? 'Continue Reading' : 'Start Reading'}
-                          </button>
-                        </div>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+                        <div 
+                          className="h-full bg-[#E8690A] progress-bar-glow" 
+                          style={{ width: `${book.progress ? Math.max(progressPct, 5) : 0}%` }}
+                        ></div>
                       </div>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                    <div className="space-y-1">
+                      <h3 className="font-headline-md text-base font-bold text-on-surface truncate">{book.title}</h3>
+                      <p className="text-secondary text-sm truncate">{book.author || 'Unknown Author'}</p>
+                      <span className="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">
+                        {book.progress ? `${progressPct}% READ` : 'NEW'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
         )}
-      </div>
+      </main>
 
-      <UploadModal
-        isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onUploadSuccess={handleUploadSuccess}
-      />
+      {/* Bottom Nav Bar (mobile) */}
+      <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe md:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-50">
+        <div className="flex flex-col items-center justify-center text-[#E8690A] bg-orange-50 dark:bg-orange-950/30 rounded-full px-4 py-1 transition-transform active:scale-90">
+          <span className="material-symbols-outlined">library_books</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Library</span>
+        </div>
+        <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
+          <span className="material-symbols-outlined">explore</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Discover</span>
+        </div>
+        <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
+          <span className="material-symbols-outlined">bar_chart</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Stats</span>
+        </div>
+        <div 
+          onClick={() => router.push('/settings')}
+          className="flex flex-col items-center justify-center text-[#E8690A] transition-transform active:scale-90 cursor-pointer"
+        >
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Settings</span>
+        </div>
+      </nav>
+
+      {/* Upload Modal */}
+      {showUpload && (
+        <UploadModal
+          onClose={() => setShowUpload(false)}
+          onUploadComplete={handleUploadComplete}
+        />
+      )}
     </div>
   )
 }

@@ -3,6 +3,36 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 
+// Fetch a cover image URL from Google Books API (free, no key needed)
+async function fetchBookCover(title: string, author: string): Promise<string | null> {
+  try {
+    const query = encodeURIComponent(`${title} ${author !== 'Unknown Author' ? author : ''}`.trim())
+    const res = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=1&fields=items(volumeInfo/imageLinks)`,
+      { signal: AbortSignal.timeout(5000) } // 5 second timeout
+    )
+
+    if (!res.ok) return null
+
+    const data = await res.json()
+    const imageLinks = data?.items?.[0]?.volumeInfo?.imageLinks
+
+    if (imageLinks) {
+      // Prefer higher quality images, remove edge=curl parameter
+      const url = (imageLinks.thumbnail || imageLinks.smallThumbnail || '')
+        .replace('&edge=curl', '')
+        .replace('http://', 'https://')
+      // Request a larger image by modifying the zoom parameter
+      return url ? url.replace('zoom=1', 'zoom=2') : null
+    }
+
+    return null
+  } catch {
+    // Don't let cover fetching break the upload
+    return null
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = createClient()
@@ -16,6 +46,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File
     const chaptersJson = formData.get('chapters') as string
     const author = formData.get('author') as string || 'Unknown Author'
+    const extractedTitle = formData.get('title') as string || ''
 
     if (!file || file.type !== 'application/pdf') {
       return NextResponse.json({ error: 'Invalid file type. Only PDF is supported.' }, { status: 400 })
@@ -36,6 +67,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid chapter data.' }, { status: 400 })
     }
 
+    // Use extracted title from PDF metadata, fall back to cleaned filename
+    const title = extractedTitle || file.name.replace(/\.pdf$/i, '')
+
     const bookId = uuidv4()
     const filePath = `books/${user.id}/${bookId}.pdf`
 
@@ -54,8 +88,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to upload file to storage.' }, { status: 500 })
     }
 
-    // Insert book record (status = 'ready' immediately since chapters are already extracted)
-    const title = file.name.replace(/\.pdf$/i, '')
+    // Fetch cover image from Google Books API
+    const coverUrl = await fetchBookCover(title, author)
+
+    // Insert book record (status = 'ready' since chapters are already extracted)
     const { error: dbError } = await admin
       .from('books')
       .insert({
@@ -65,7 +101,7 @@ export async function POST(request: Request) {
         author: author,
         status: 'ready',
         storage_path: filePath,
-        cover_path: null,
+        cover_url: coverUrl,
         created_at: new Date().toISOString()
       })
 
@@ -91,7 +127,6 @@ export async function POST(request: Request) {
 
       if (chaptersError) {
         console.error('Chapters insert error:', chaptersError)
-        // Cleanup on failure
         await admin.from('books').delete().eq('id', bookId)
         await admin.storage.from('books').remove([filePath])
         return NextResponse.json({ error: 'Failed to save chapters.' }, { status: 500 })

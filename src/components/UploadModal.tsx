@@ -1,88 +1,70 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { UploadCloud, File as FileIcon, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { processClientPdf } from '@/lib/clientPdfProcessor'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface UploadModalProps {
-  isOpen: boolean
   onClose: () => void
-  onUploadSuccess?: (bookId: string) => void
+  onUploadComplete: () => void
 }
 
-type UploadStage = 'idle' | 'extracting' | 'uploading' | 'done' | 'error'
+type Stage = 'idle' | 'extracting' | 'uploading' | 'done' | 'error'
 
-export default function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalProps) {
-  const [file, setFile] = useState<File | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [stage, setStage] = useState<UploadStage>('idle')
-  const [error, setError] = useState<string | null>(null)
-  const [progress, setProgress] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export default function UploadModal({ onClose, onUploadComplete }: UploadModalProps) {
   const router = useRouter()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [stage, setStage] = useState<Stage>('idle')
+  const [progress, setProgress] = useState('')
+  const [percent, setPercent] = useState(0)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  if (!isOpen) return null
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const validateFile = (selectedFile: File) => {
-    if (selectedFile.type !== 'application/pdf') {
-      setError('Please upload a valid PDF file.')
-      return false
+  const handleFileSelect = (file: File) => {
+    if (file.type !== 'application/pdf') {
+      setErrorMsg('Only PDF files are supported.')
+      return
     }
-    if (selectedFile.size > 50 * 1024 * 1024) {
-      setError('File size exceeds the 50MB limit.')
-      return false
+    if (file.size > 50 * 1024 * 1024) {
+      setErrorMsg('File size exceeds 50MB limit.')
+      return
     }
-    setError(null)
-    return true
+    setSelectedFile(file)
+    setErrorMsg('')
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile && validateFile(droppedFile)) {
-      setFile(droppedFile)
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile && validateFile(selectedFile)) {
-      setFile(selectedFile)
-    }
+    const file = e.dataTransfer.files[0]
+    if (file) handleFileSelect(file)
   }
 
   const handleUpload = async () => {
-    if (!file) return
-
-    setError(null)
+    if (!selectedFile) return
 
     try {
-      // Step 1: Extract text in the browser (no time limit!)
+      // Step 1: Extract chapters client-side
       setStage('extracting')
       setProgress('Reading PDF pages...')
-      const result = await processClientPdf(file)
-      setProgress(`Found ${result.chapters.length} chapter(s) across ${result.pageCount} pages`)
+      setPercent(10)
+
+      const result = await processClientPdf(selectedFile)
+      setPercent(40)
+      setProgress(`Found ${result.chapters.length} chapters`)
 
       // Step 2: Upload file + chapters to server
       setStage('uploading')
       setProgress('Saving to cloud...')
+      setPercent(60)
 
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', selectedFile)
       formData.append('chapters', JSON.stringify(result.chapters))
       formData.append('author', result.author)
+      formData.append('title', result.title)
 
       const response = await fetch('/api/books/upload', {
         method: 'POST',
@@ -95,141 +77,228 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
         throw new Error(data.error || 'Upload failed')
       }
 
-      // Step 3: Done!
+      setPercent(100)
       setStage('done')
       setProgress('Book ready!')
 
       setTimeout(() => {
-        setFile(null)
-        setStage('idle')
-        setProgress('')
-        if (onUploadSuccess) {
-          onUploadSuccess(data.bookId)
-        } else {
-          router.refresh()
-          onClose()
-        }
-      }, 800)
+        router.push(`/manage/${data.bookId}`)
+        onUploadComplete()
+      }, 1500)
     } catch (err: any) {
       setStage('error')
-      setError(err.message || 'An unexpected error occurred.')
+      setErrorMsg(err.message || 'Something went wrong')
     }
   }
 
   const isProcessing = stage === 'extracting' || stage === 'uploading'
 
-  const stageLabel = {
-    idle: 'Upload & Process',
-    extracting: 'Extracting text...',
-    uploading: 'Uploading...',
-    done: 'Done!',
-    error: 'Upload & Process',
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1c30]/40 backdrop-blur-sm p-4">
-      <div className="bg-[#ffffff] rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-[#E2E8F0] w-full max-w-md overflow-hidden relative">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#e5eeff]">
-          <h2 className="font-semibold text-[#0b1c30] text-lg font-['Inter']">Upload Book</h2>
-          <button
-            onClick={onClose}
-            disabled={isProcessing}
-            className="text-[#565e74] hover:bg-[#f8f9ff] p-2 rounded-full transition-colors disabled:opacity-50"
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-slate-900/10 backdrop-blur-md" 
+          onClick={isProcessing ? undefined : onClose} 
+        />
+
+        {stage === 'idle' || stage === 'error' ? (
+          /* Upload Modal View */
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="relative bg-white w-full max-w-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100"
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6">
-          {!file ? (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                isDragging
-                  ? 'border-[#E8690A] bg-[#fffbf8]'
-                  : 'border-[#bec6e0] bg-[#f8f9ff] hover:border-[#E8690A] hover:bg-[#fffbf8]'
-              }`}
-            >
-              <UploadCloud className={`w-12 h-12 mb-4 ${isDragging ? 'text-[#E8690A]' : 'text-[#8c7265]'}`} />
-              <p className="text-[#0b1c30] font-medium mb-1 font-['Inter']">Click or drag and drop</p>
-              <p className="text-[#584237] text-sm text-center font-['Inter']">
-                PDF format only (Max 50MB)
-              </p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                accept="application/pdf"
-                className="hidden"
-              />
+            {/* Header */}
+            <div className="px-8 pt-8 pb-4 flex justify-between items-center">
+              <h2 className="font-headline-md text-headline-md text-on-surface">Upload a Book</h2>
+              <button 
+                onClick={onClose} 
+                className="p-2 rounded-full hover:bg-slate-50 transition-colors text-slate-400"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="border border-[#e5eeff] rounded-xl p-4 flex items-center bg-[#f8f9ff]">
-                <div className="bg-[#dae2fd] p-3 rounded-lg mr-4">
-                  <FileIcon className="w-6 h-6 text-[#131b2e]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#0b1c30] font-medium truncate font-['Inter']">{file.name}</p>
-                  <p className="text-[#584237] text-sm font-['Inter']">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                </div>
-                {!isProcessing && stage !== 'done' && (
-                  <button
-                    onClick={() => { setFile(null); setStage('idle'); setError(null) }}
-                    className="text-[#ba1a1a] p-2 hover:bg-[#ffdad6] rounded-full transition-colors ml-2"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
 
-              {/* Progress indicator */}
-              {(isProcessing || stage === 'done') && (
-                <div className="flex items-center gap-3 p-3 bg-[#f0fdf4] rounded-lg">
-                  {stage === 'done' ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
-                  ) : (
-                    <Loader2 className="w-5 h-5 animate-spin text-[#E8690A] shrink-0" />
-                  )}
-                  <p className="text-sm font-medium text-[#0b1c30] font-['Inter']">{progress}</p>
+            {/* Content */}
+            <div className="px-8 pb-4">
+              {!selectedFile ? (
+                /* Drop zone */
+                <div
+                  className={`relative bg-[#F9FAFB] hover:bg-slate-50 transition-colors cursor-pointer group rounded-2xl border-2 border-dashed ${
+                    isDragging ? 'border-[#E8690A] bg-orange-50/50' : 'border-slate-200'
+                  }`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                >
+                  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-6 border border-slate-100 group-hover:scale-105 transition-transform">
+                      <span className="material-symbols-outlined text-slate-400 text-3xl">upload_file</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-ui-body text-slate-600">Drag your PDF here</p>
+                      <p className="font-ui-body text-slate-400">
+                        or <span className="text-[#E8690A] font-semibold">click to browse</span>
+                      </p>
+                    </div>
+                    {/* Decorative Visual */}
+                    <div className="mt-12">
+                      <div className="relative w-40 h-52 bg-white rounded-lg border border-slate-100 shadow-sm p-4 overflow-hidden opacity-40">
+                        <div className="w-full h-24 bg-slate-100 rounded-sm mb-4"></div>
+                        <div className="h-2 w-full bg-slate-50 rounded-full mb-2"></div>
+                        <div className="h-2 w-3/4 bg-slate-50 rounded-full mb-2"></div>
+                        <div className="h-2 w-1/2 bg-slate-50 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* File selected View */
+                <div className="flex flex-col items-center py-12">
+                  <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-[#E8690A] text-4xl">description</span>
+                  </div>
+                  <h3 className="font-bold text-on-surface text-xl mb-1 text-center truncate w-full px-4">{selectedFile.name}</h3>
+                  <p className="text-secondary text-sm mb-6">
+                    {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB • PDF Document
+                  </p>
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="text-sm font-semibold text-slate-400 hover:text-[#E8690A] transition-colors flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">restart_alt</span>
+                    Choose a different file
+                  </button>
                 </div>
               )}
-            </div>
-          )}
 
-          {error && (
-            <div className="mt-4 p-3 bg-[#ffdad6] text-[#93000a] text-sm rounded-lg font-medium font-['Inter']">
-              {error}
-            </div>
-          )}
-        </div>
+              {errorMsg && (
+                <div className="mt-4 p-3 bg-error-container text-on-error-container rounded-lg text-sm font-medium flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">error</span>
+                  {errorMsg}
+                </div>
+              )}
 
-        {/* Footer */}
-        <div className="p-4 bg-[#f8f9ff] border-t border-[#e5eeff] flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            disabled={isProcessing}
-            className="px-4 py-2 rounded-full border border-[#8c7265] text-[#0b1c30] hover:bg-[#eaf1ff] transition-colors font-semibold text-sm disabled:opacity-50 font-['Inter']"
+              <p className="mt-4 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                50MB MAXIMUM • PDF ONLY
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 py-6 bg-slate-50/50 flex items-center justify-end gap-6">
+              <button
+                onClick={onClose}
+                className="text-slate-500 hover:text-on-surface font-bold text-[11px] uppercase tracking-widest transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={!selectedFile}
+                className={`px-10 py-4 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all ${
+                  selectedFile 
+                    ? 'bg-[#E8690A] text-white hover:bg-[#c05400] shadow-lg shadow-orange-500/20 active:scale-95'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-80'
+                }`}
+              >
+                Upload & Process
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          /* Processing Full Screen View */
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-white z-[70] flex flex-col items-center justify-center p-8 text-center"
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={!file || isProcessing || stage === 'done'}
-            className="px-6 py-2 rounded-full bg-[#E8690A] text-white font-bold text-sm hover:bg-[#c05400] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-['Inter']"
-          >
-            {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
-            {stageLabel[stage]}
-          </button>
-        </div>
+            {/* Top Branding */}
+            <div className="absolute top-12">
+              <span className="text-2xl font-black text-[#E8690A] tracking-tighter">Wonderpad</span>
+            </div>
+
+            {/* Central Spinner */}
+            <div className="relative flex items-center justify-center mb-12">
+              <svg className="w-56 h-56 md:w-72 md:h-72">
+                <circle 
+                  className="text-slate-100" 
+                  cx="50%" cy="50%" r="90" 
+                  fill="transparent" stroke="currentColor" strokeWidth="4"
+                  style={{ r: 'clamp(80px, 18vw, 100px)' }}
+                />
+                <motion.circle 
+                  className="text-[#E8690A]" 
+                  cx="50%" cy="50%" r="90" 
+                  fill="transparent" stroke="currentColor" strokeWidth="4" 
+                  strokeDasharray="200 400" strokeLinecap="round"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  style={{ r: 'clamp(80px, 18vw, 100px)', transformOrigin: 'center' }}
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-slate-300">
+                  {stage === 'done' ? 'check_circle' : 'import_contacts'}
+                </span>
+              </div>
+            </div>
+
+            {/* Metadata & Status */}
+            <div className="space-y-4 max-w-md w-full">
+              <h1 className="font-headline-md text-2xl font-bold text-on-surface truncate w-full">
+                {selectedFile?.name}
+              </h1>
+              <p className="font-label-sm text-sm text-slate-400 uppercase tracking-widest animate-pulse">
+                {progress}
+              </p>
+            </div>
+
+            {/* Progress Bar Footer */}
+            <div className="mt-16 w-64 space-y-3">
+              <div className="flex justify-between items-center text-[11px] font-black text-slate-300 uppercase tracking-tighter">
+                <span>PROGRESS</span>
+                <span className="text-[#E8690A]">{Math.round(percent)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-[#E8690A]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Decorative Hints (from design) */}
+            <div className="fixed inset-0 -z-10 pointer-events-none opacity-[0.03] select-none">
+              <div className="absolute top-1/4 left-1/4 transform -rotate-12 font-reader-body text-4xl">
+                &ldquo;In my younger and more vulnerable years...&rdquo;
+              </div>
+              <div className="absolute bottom-1/4 right-1/4 transform rotate-6 font-reader-body text-4xl">
+                &ldquo;...reserving judgments is a matter of infinite hope.&rdquo;
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleFileSelect(file)
+          }}
+          className="hidden"
+        />
       </div>
-    </div>
+    </AnimatePresence>
   )
 }

@@ -18,7 +18,7 @@ export default async function LibraryPage() {
       title, 
       status,
       author,
-      cover_path,
+      cover_url,
       reading_progress (
         chapter_index,
         scroll_percent
@@ -33,7 +33,7 @@ export default async function LibraryPage() {
     title: book.title,
     status: book.status,
     author: book.author,
-    cover_path: book.cover_path,
+    cover_url: book.cover_url,
     progress: book.reading_progress?.[0] || null
   }))
 
