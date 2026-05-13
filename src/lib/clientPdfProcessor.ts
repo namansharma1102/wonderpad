@@ -95,9 +95,8 @@ async function extractChaptersFromOutline(
     let content = ''
     for (let pageNum = startPage; pageNum <= endPage; pageNum++) {
       const page = await pdfDocument.getPage(pageNum)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items.map((item: any) => item.str).join(' ')
-      content += pageText + '\n\n'
+      const pageText = await extractPageHTML(page)
+      content += pageText + '<br/><br/>\n'
     }
 
     chapters.push({
@@ -164,6 +163,52 @@ function isChapterHeading(text: string): boolean {
   return false
 }
 
+async function extractPageHTML(page: any): Promise<string> {
+  const textContent = await page.getTextContent()
+  let html = ''
+  let lastY = -1
+  let lastX = -1
+  
+  for (const item of textContent.items) {
+    if (!item.str || item.str.trim() === '') {
+      html += ' '
+      continue
+    }
+
+    const x = item.transform[4]
+    const y = item.transform[5]
+    const height = item.height || 10
+
+    if (lastY !== -1 && Math.abs(y - lastY) > height * 0.5) {
+      html += '<br/>\n'
+    } else if (lastX !== -1 && (x - lastX) > (height * 0.2)) {
+      html += ' '
+    }
+
+    let isBold = false
+    let isItalic = false
+    try {
+      const font = page.commonObjs.has(item.fontName) ? page.commonObjs.get(item.fontName) : page.objs.get(item.fontName)
+      if (font && font.name) {
+        const name = font.name.toLowerCase()
+        isBold = name.includes('bold') || name.includes('black') || name.includes('heavy')
+        isItalic = name.includes('italic') || name.includes('oblique')
+      }
+    } catch {
+      // ignore
+    }
+
+    let text = item.str
+    if (isBold) text = `<b>${text}</b>`
+    if (isItalic) text = `<i>${text}</i>`
+
+    html += text
+    lastY = y
+    lastX = x + item.width
+  }
+  return html
+}
+
 async function extractChaptersHeuristic(
   pdfDocument: any,
   numPages: number
@@ -182,22 +227,51 @@ async function extractChaptersHeuristic(
     const lines: string[] = []
     let currentLine = ''
     let lastY: number | null = null
+    let lastX: number | null = null
 
     for (const item of items) {
+      if (!item.str || item.str.trim() === '') {
+        currentLine += ' '
+        continue
+      }
+      const x = item.transform ? item.transform[4] : null
       const y = item.transform ? item.transform[5] : null
-      if (lastY !== null && y !== null && Math.abs(y - lastY) > 5) {
+      const height = item.height || 10
+
+      if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 0.5) {
         // New line
         if (currentLine.trim()) lines.push(currentLine.trim())
-        currentLine = item.str
-      } else {
-        currentLine += item.str
+        currentLine = ''
+      } else if (lastX !== null && x !== null && (x - lastX) > (height * 0.2)) {
+        currentLine += ' '
       }
+      
+      let isBold = false
+      let isItalic = false
+      try {
+        const font = page.commonObjs.has(item.fontName) ? page.commonObjs.get(item.fontName) : page.objs.get(item.fontName)
+        if (font && font.name) {
+          const name = font.name.toLowerCase()
+          isBold = name.includes('bold') || name.includes('black') || name.includes('heavy')
+          isItalic = name.includes('italic') || name.includes('oblique')
+        }
+      } catch {
+        // ignore
+      }
+
+      let text = item.str
+      if (isBold) text = `<b>${text}</b>`
+      if (isItalic) text = `<i>${text}</i>`
+      
+      currentLine += text
       lastY = y
+      if (x !== null) lastX = x + item.width
     }
     if (currentLine.trim()) lines.push(currentLine.trim())
 
     for (const line of lines) {
-      if (isChapterHeading(line)) {
+      const plainText = line.replace(/<[^>]+>/g, '')
+      if (isChapterHeading(plainText)) {
         // Save previous chapter
         if (currentChapter) {
           currentChapter.content = contentBuffer.trim()
@@ -212,7 +286,7 @@ async function extractChaptersHeuristic(
           content: '',
         }
       } else {
-        contentBuffer += line + ' '
+        contentBuffer += line + '<br/>\n'
       }
     }
   }

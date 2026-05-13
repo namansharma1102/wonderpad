@@ -133,8 +133,8 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex flex-col items-center justify-center p-4">
-                          <span className="material-symbols-outlined text-[#E8690A] text-4xl mb-2">menu_book</span>
-                          <span className="text-xs text-center font-semibold text-[#E8690A]/70 line-clamp-3">{book.title}</span>
+                          <img src="/logo.png" alt="Wonderpad Logo" className="w-16 h-16 object-contain mb-4 drop-shadow-md mix-blend-multiply opacity-80" />
+                          <span className="text-sm text-center font-bold text-slate-700 line-clamp-3 leading-snug px-2">{book.title}</span>
                         </div>
                       )}
                       

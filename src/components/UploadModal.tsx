@@ -60,15 +60,17 @@ export default function UploadModal({ onClose, onUploadComplete }: UploadModalPr
       setProgress('Saving to cloud...')
       setPercent(60)
 
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('chapters', JSON.stringify(result.chapters))
-      formData.append('author', result.author)
-      formData.append('title', result.title)
+      const payload = {
+        filename: selectedFile.name,
+        chapters: result.chapters,
+        author: result.author,
+        title: result.title
+      }
 
       const response = await fetch('/api/books/upload', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -111,7 +113,7 @@ export default function UploadModal({ onClose, onUploadComplete }: UploadModalPr
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white w-full max-w-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100"
+            className="relative bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100"
           >
             {/* Header */}
             <div className="px-8 pt-8 pb-4 flex justify-between items-center">
@@ -275,15 +277,6 @@ export default function UploadModal({ onClose, onUploadComplete }: UploadModalPr
               </div>
             </div>
 
-            {/* Decorative Hints (from design) */}
-            <div className="fixed inset-0 -z-10 pointer-events-none opacity-[0.03] select-none">
-              <div className="absolute top-1/4 left-1/4 transform -rotate-12 font-reader-body text-4xl">
-                &ldquo;In my younger and more vulnerable years...&rdquo;
-              </div>
-              <div className="absolute bottom-1/4 right-1/4 transform rotate-6 font-reader-body text-4xl">
-                &ldquo;...reserving judgments is a matter of infinite hope.&rdquo;
-              </div>
-            </div>
           </motion.div>
         )}
 

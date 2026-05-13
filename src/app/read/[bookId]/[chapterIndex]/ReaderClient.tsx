@@ -141,8 +141,10 @@ export default function ReaderClient({
 
   const navigateChapter = (newIndex: number) => {
     if (newIndex < 1 || newIndex > totalChapters) return
-    router.push(`/read/${bookId}/${newIndex}`)
+    // Use replace to prevent blowing up the back-button history
+    router.replace(`/read/${bookId}/${newIndex}`)
   }
+
 
   const overallProgress = Math.round(((currentChapter.index - 1 + (scrollProgress / 100)) / totalChapters) * 100)
   const lineWeight = theme === 'sepia' ? '1.75' : '1.6'
@@ -211,7 +213,11 @@ export default function ReaderClient({
 
           <div 
             className="reader-content text-justify space-y-8"
-            dangerouslySetInnerHTML={{ __html: currentChapter.content.replace(/\n/g, '<br/>') }}
+            dangerouslySetInnerHTML={{ 
+              __html: currentChapter.content.includes('<br') 
+                ? currentChapter.content 
+                : currentChapter.content.replace(/\n/g, '<br/>') 
+            }}
           />
           
           <footer className="mt-24 pt-8 border-t flex justify-between items-center opacity-30 text-[10px] font-bold uppercase tracking-widest" style={{ borderColor: 'var(--reader-border)' }}>

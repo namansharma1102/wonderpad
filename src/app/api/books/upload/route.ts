@@ -42,56 +42,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    const chaptersJson = formData.get('chapters') as string
-    const author = formData.get('author') as string || 'Unknown Author'
-    const extractedTitle = formData.get('title') as string || ''
+    // Use JSON instead of FormData to avoid large binary payloads hitting limits
+    const body = await request.json()
+    const { filename, title: extractedTitle, author: rawAuthor, chapters } = body
 
-    if (!file || file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Invalid file type. Only PDF is supported.' }, { status: 400 })
-    }
-
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size exceeds 50MB limit.' }, { status: 400 })
-    }
-
-    if (!chaptersJson) {
+    if (!chapters || !Array.isArray(chapters) || chapters.length === 0) {
       return NextResponse.json({ error: 'No chapter data provided.' }, { status: 400 })
     }
 
-    let chapters: Array<{ index: number; title: string; startPage: number; content: string }>
-    try {
-      chapters = JSON.parse(chaptersJson)
-    } catch {
-      return NextResponse.json({ error: 'Invalid chapter data.' }, { status: 400 })
-    }
-
-    // Use extracted title from PDF metadata, fall back to cleaned filename
-    const title = extractedTitle || file.name.replace(/\.pdf$/i, '')
-
+    const title = extractedTitle || filename.replace(/\.pdf$/i, '')
+    const author = rawAuthor || 'Unknown Author'
     const bookId = uuidv4()
-    const filePath = `books/${user.id}/${bookId}.pdf`
+    
+    // We no longer save the PDF binary to Supabase Storage.
+    // The reader only needs the extracted chapters, saving bandwidth & storage!
 
-    // Upload PDF to Supabase Storage
     const admin = createAdminClient()
-
-    const { error: uploadError } = await admin.storage
-      .from('books')
-      .upload(filePath, file, {
-        contentType: 'application/pdf',
-        upsert: true,
-      })
-
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError)
-      return NextResponse.json({ error: 'Failed to upload file to storage.' }, { status: 500 })
-    }
 
     // Fetch cover image from Google Books API
     const coverUrl = await fetchBookCover(title, author)
 
-    // Insert book record (status = 'ready' since chapters are already extracted)
+    // Insert book record
     const { error: dbError } = await admin
       .from('books')
       .insert({
@@ -100,19 +71,17 @@ export async function POST(request: Request) {
         title: title,
         author: author,
         status: 'ready',
-        storage_path: filePath,
         cover_url: coverUrl,
         created_at: new Date().toISOString()
       })
 
     if (dbError) {
       console.error('Database insert error:', dbError)
-      await admin.storage.from('books').remove([filePath])
       return NextResponse.json({ error: 'Failed to create book record.' }, { status: 500 })
     }
 
     // Bulk insert chapters
-    const chapterRecords = chapters.map((ch) => ({
+    const chapterRecords = chapters.map((ch: any) => ({
       book_id: bookId,
       index: ch.index,
       title: ch.title,
@@ -120,22 +89,23 @@ export async function POST(request: Request) {
       content: ch.content,
     }))
 
-    if (chapterRecords.length > 0) {
-      const { error: chaptersError } = await admin
-        .from('chapters')
-        .insert(chapterRecords)
+    const { error: chaptersError } = await admin
+      .from('chapters')
+      .insert(chapterRecords)
 
-      if (chaptersError) {
-        console.error('Chapters insert error:', chaptersError)
-        await admin.from('books').delete().eq('id', bookId)
-        await admin.storage.from('books').remove([filePath])
-        return NextResponse.json({ error: 'Failed to save chapters.' }, { status: 500 })
-      }
+    if (chaptersError) {
+      console.error('Chapters insert error:', chaptersError)
+      await admin.from('books').delete().eq('id', bookId)
+      return NextResponse.json({ error: 'Failed to save chapters.' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, bookId, status: 'ready' })
   } catch (error: any) {
     console.error('Upload handler error:', error)
+    // Handle payload too large error nicely
+    if (error?.type === 'entity.too.large') {
+       return NextResponse.json({ error: 'Book is too long to process at once.' }, { status: 413 })
+    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
