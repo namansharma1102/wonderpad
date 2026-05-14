@@ -88,6 +88,24 @@ async function extractChaptersFromOutline(
   // Extract text for each chapter range
   const chapters: ExtractedChapter[] = []
 
+  // Add Prelude if there are pages before the first outline entry
+  if (deduped[0].pageNum > 1) {
+    let preludeContent = ''
+    for (let pageNum = 1; pageNum < deduped[0].pageNum; pageNum++) {
+      const page = await pdfDocument.getPage(pageNum)
+      const pageText = await extractPageHTML(page)
+      preludeContent += pageText + '<br/><br/>\n'
+    }
+    if (preludeContent.replace(/<[^>]+>/g, '').trim().length > 100) {
+      chapters.push({
+        index: 1,
+        title: 'Prelude',
+        startPage: 1,
+        content: preludeContent.trim(),
+      })
+    }
+  }
+
   for (let i = 0; i < deduped.length; i++) {
     const startPage = deduped[i].pageNum
     const endPage = i < deduped.length - 1 ? deduped[i + 1].pageNum - 1 : numPages
@@ -100,7 +118,7 @@ async function extractChaptersFromOutline(
     }
 
     chapters.push({
-      index: i + 1,
+      index: chapters.length + 1,
       title: deduped[i].title.trim(),
       startPage,
       content: content.trim(),
@@ -276,8 +294,15 @@ async function extractChaptersHeuristic(
         if (currentChapter) {
           currentChapter.content = contentBuffer.trim()
           chapters.push(currentChapter)
-          contentBuffer = ''
+        } else if (contentBuffer.replace(/<[^>]+>/g, '').trim().length > 100) {
+          chapters.push({
+            index: chapters.length + 1,
+            title: 'Prelude',
+            startPage: 1,
+            content: contentBuffer.trim(),
+          })
         }
+        contentBuffer = ''
 
         currentChapter = {
           index: chapters.length + 1,

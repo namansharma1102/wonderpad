@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 
 interface Chapter {
@@ -19,7 +19,7 @@ interface ChapterEditorClientProps {
 export default function ChapterEditorClient({ book, initialChapters }: ChapterEditorClientProps) {
   const [chapters, setChapters] = useState<Chapter[]>(initialChapters)
   const [isSaving, setIsSaving] = useState(false)
-  const router = useRouter()
+
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -40,7 +40,6 @@ export default function ChapterEditorClient({ book, initialChapters }: ChapterEd
           .update({ title: chapter.title })
           .eq('id', chapter.id)
       }
-      router.refresh()
     } catch (error) {
       console.error('Failed to save chapters:', error)
     } finally {
@@ -53,23 +52,23 @@ export default function ChapterEditorClient({ book, initialChapters }: ChapterEd
       {/* TopAppBar */}
       <header className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-50 h-16 flex justify-between items-center px-4">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => router.push('/library')}
+          <Link 
+            href="/library"
             className="flex items-center justify-center w-10 h-10 text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
           >
             <span className="material-symbols-outlined">arrow_back</span>
-          </button>
+          </Link>
           <h1 className="font-bold text-sm tracking-tight text-slate-900 truncate max-w-[200px]">
             {book.title}
           </h1>
         </div>
         <div>
-          <button 
-            onClick={() => router.push(`/read/${book.id}/1`)}
-            className="bg-[#E8690A] hover:bg-[#c05400] text-white px-6 py-2 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95"
+          <Link 
+            href={`/read/${book.id}/1`}
+            className="bg-[#E8690A] hover:bg-[#c05400] text-white px-6 py-2 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 inline-block"
           >
             Start Reading
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -129,13 +128,13 @@ export default function ChapterEditorClient({ book, initialChapters }: ChapterEd
       </main>
 
       {/* Mobile Sticky CTA */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full z-40 bg-white px-4 pb-10 pt-4 border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <button 
-          onClick={() => router.push(`/read/${book.id}/1`)}
-          className="w-full bg-[#E8690A] text-white py-4 rounded-full font-bold text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-transform"
+      <div className="md:hidden fixed bottom-0 left-0 w-full z-40 bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-4 border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <Link 
+          href={`/read/${book.id}/1`}
+          className="block text-center w-full bg-[#E8690A] text-white py-4 rounded-full font-bold text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-transform"
         >
           Start Reading
-        </button>
+        </Link>
       </div>
     </div>
   )

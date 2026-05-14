@@ -2,7 +2,9 @@
 
 import React, { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import UploadModal from '@/components/UploadModal'
+import Navigation from '@/components/Navigation'
 
 interface BookData {
   id: string
@@ -34,29 +36,7 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
 
   return (
     <div className="bg-background font-ui-body text-on-background min-h-screen pb-24 md:pb-0">
-      {/* TopAppBar */}
-      <header className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 docked full-width top-0 z-50 font-sans antialiased tracking-tight sticky">
-        <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#E8690A] cursor-pointer">menu</span>
-            <span className="text-2xl font-black text-[#E8690A] tracking-tighter">Wonderpad</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a className="text-[#E8690A] font-semibold hover:text-[#E8690A] transition-colors" href="#">Library</a>
-            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Discover</a>
-            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="#">Stats</a>
-            <a className="text-slate-600 dark:text-slate-400 hover:text-[#E8690A] transition-colors" href="/settings">Settings</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <div 
-              onClick={() => router.push('/settings')}
-              className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden cursor-pointer active:opacity-70 transition-opacity"
-            >
-              <span className="text-[#E8690A] font-bold text-sm">JS</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="max-w-7xl mx-auto px-6 py-10">
         {/* Title & Upload Button */}
@@ -116,13 +96,10 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
                   : 0
 
                 return (
-                  <div 
+                  <Link 
                     key={book.id} 
-                    className="group cursor-pointer"
-                    onClick={() => {
-                      const chapterIdx = book.progress?.chapter_index || 1
-                      router.push(`/read/${book.id}/${chapterIdx}`)
-                    }}
+                    href={`/read/${book.id}/${book.progress?.chapter_index || 1}`}
+                    className="group cursor-pointer block"
                   >
                     <div className="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
                       {book.cover_url ? (
@@ -163,36 +140,13 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
                         {book.progress ? `${progressPct}% READ` : 'NEW'}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>
           </section>
         )}
       </main>
-
-      {/* Bottom Nav Bar (mobile) */}
-      <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe md:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-50">
-        <div className="flex flex-col items-center justify-center text-[#E8690A] bg-orange-50 dark:bg-orange-950/30 rounded-full px-4 py-1 transition-transform active:scale-90">
-          <span className="material-symbols-outlined">library_books</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Library</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
-          <span className="material-symbols-outlined">explore</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Discover</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-transform active:scale-90">
-          <span className="material-symbols-outlined">bar_chart</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Stats</span>
-        </div>
-        <div 
-          onClick={() => router.push('/settings')}
-          className="flex flex-col items-center justify-center text-[#E8690A] transition-transform active:scale-90 cursor-pointer"
-        >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest font-sans">Settings</span>
-        </div>
-      </nav>
 
       {/* Upload Modal */}
       {showUpload && (

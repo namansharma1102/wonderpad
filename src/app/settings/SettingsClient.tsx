@@ -3,6 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import Navigation from '@/components/Navigation'
 
 interface SettingsClientProps {
   user: any
@@ -25,8 +26,8 @@ export default function SettingsClient({ user }: SettingsClientProps) {
 
   return (
     <div className="bg-[#F2F2F7] min-h-screen font-ui-body text-on-surface antialiased">
-      {/* Top App Bar */}
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-50 h-16 flex justify-between items-center px-4">
+      <Navigation />
+      <header className="md:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-40 h-16 flex justify-between items-center px-4">
         <div className="flex items-center">
           <button 
             onClick={() => router.back()}
@@ -113,7 +114,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
 
         {/* Danger Zone */}
         <section>
-          <h2 className="px-4 mb-2 text-[11px] font-black uppercase text-red-500 tracking-widest">Danger Zone</h2>
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-red-100">
             <button 
               onClick={handleSignOut}
@@ -136,24 +136,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
         </div>
       </main>
 
-      {/* Bottom Nav Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 pb-safe bg-white/90 backdrop-blur-md border-t border-slate-200">
-        <button 
-          onClick={() => router.push('/library')}
-          className="flex flex-col items-center justify-center text-slate-400 hover:text-[#E8690A] transition-transform active:scale-90"
-        >
-          <span className="material-symbols-outlined">library_books</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest mt-1">Library</span>
-        </button>
-        <button className="flex flex-col items-center justify-center text-slate-400 hover:text-[#E8690A] transition-transform active:scale-90">
-          <span className="material-symbols-outlined">explore</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest mt-1">Discover</span>
-        </button>
-        <button className="flex flex-col items-center justify-center text-[#E8690A] transition-transform active:scale-90">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest mt-1">Settings</span>
-        </button>
-      </nav>
     </div>
   )
 }
