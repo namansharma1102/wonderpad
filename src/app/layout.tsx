@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   },
 }
 
+import InstallPrompt from '@/components/InstallPrompt';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,9 +30,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+        <link rel="apple-touch-icon" href="/icon.png" />
       </head>
       <body className="antialiased">
         {children}
+        <InstallPrompt />
       </body>
     </html>
   );

@@ -72,6 +72,7 @@ export async function POST(request: Request) {
         author: author,
         status: 'ready',
         cover_url: coverUrl,
+        storage_path: 'json-only',
         created_at: new Date().toISOString()
       })
 
