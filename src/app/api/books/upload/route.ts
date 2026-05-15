@@ -3,27 +3,22 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 
-// Fetch a cover image URL from Google Books API (free, no key needed)
+// Fetch a cover image URL from OpenLibrary API (free, no key needed)
 async function fetchBookCover(title: string, author: string): Promise<string | null> {
   try {
     const query = encodeURIComponent(`${title} ${author !== 'Unknown Author' ? author : ''}`.trim())
     const res = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=1&fields=items(volumeInfo/imageLinks)`,
+      `https://openlibrary.org/search.json?q=${query}&limit=1`,
       { signal: AbortSignal.timeout(5000) } // 5 second timeout
     )
 
     if (!res.ok) return null
 
     const data = await res.json()
-    const imageLinks = data?.items?.[0]?.volumeInfo?.imageLinks
+    const coverId = data?.docs?.[0]?.cover_i
 
-    if (imageLinks) {
-      // Prefer higher quality images, remove edge=curl parameter
-      const url = (imageLinks.thumbnail || imageLinks.smallThumbnail || '')
-        .replace('&edge=curl', '')
-        .replace('http://', 'https://')
-      // Request a larger image by modifying the zoom parameter
-      return url ? url.replace('zoom=1', 'zoom=2') : null
+    if (coverId) {
+      return `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
     }
 
     return null

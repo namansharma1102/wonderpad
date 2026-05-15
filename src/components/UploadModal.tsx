@@ -84,7 +84,6 @@ export default function UploadModal({ onClose, onUploadComplete }: UploadModalPr
       setProgress('Book ready!')
 
       setTimeout(() => {
-        router.push(`/manage/${data.bookId}`)
         onUploadComplete()
       }, 1500)
     } catch (err: any) {

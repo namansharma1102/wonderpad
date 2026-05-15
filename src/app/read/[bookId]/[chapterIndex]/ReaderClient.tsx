@@ -73,9 +73,9 @@ export default function ReaderClient({
     // Update theme specific CSS variables
     const root = document.documentElement
     if (theme === 'dark') {
-      root.style.setProperty('--reader-bg', '#1A1A1A')
+      root.style.setProperty('--reader-bg', '#121212')
       root.style.setProperty('--reader-text', '#E0E0E0')
-      root.style.setProperty('--reader-ui-bg', '#141414')
+      root.style.setProperty('--reader-ui-bg', '#181818')
       root.style.setProperty('--reader-border', 'rgba(255,255,255,0.1)')
     } else if (theme === 'sepia') {
       root.style.setProperty('--reader-bg', '#F5ECD7')
@@ -349,7 +349,7 @@ export default function ReaderClient({
                       >
                         <div 
                           className="w-5 h-5 rounded-full border border-black/5"
-                          style={{ backgroundColor: t === 'white' ? '#f8f9ff' : t === 'sepia' ? '#F5ECD7' : '#1A1A1A' }}
+                          style={{ backgroundColor: t === 'white' ? '#f8f9ff' : t === 'sepia' ? '#F5ECD7' : '#121212' }}
                         />
                         <span className="text-xs font-bold capitalize">{t}</span>
                       </button>
@@ -448,33 +448,7 @@ export default function ReaderClient({
         )}
       </AnimatePresence>
 
-      {/* Floating Theme Quick Toggle */}
-      <AnimatePresence>
-        {!showBars && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full p-1.5 flex items-center gap-2 shadow-2xl"
-          >
-            {(['white', 'sepia', 'dark'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  theme === t ? 'scale-110 ring-2 ring-[#E8690A]' : 'opacity-40 hover:opacity-100'
-                }`}
-                style={{ 
-                  backgroundColor: t === 'white' ? '#f8f9ff' : t === 'sepia' ? '#F5ECD7' : '#1A1A1A',
-                  color: t === 'white' ? '#0b1c30' : t === 'sepia' ? '#5C4A1E' : '#E0E0E0'
-                }}
-              >
-                {theme === t && <span className="material-symbols-outlined text-sm">check</span>}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </div>
   )
 }

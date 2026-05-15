@@ -45,28 +45,9 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
             <h1 className="font-display-lg text-[28px] font-bold text-on-surface mb-2">My Library</h1>
             <p className="text-secondary font-ui-body">Continue where you left off in your literary journey.</p>
           </div>
-          <button 
-            onClick={() => setShowUpload(true)}
-            className="flex items-center justify-center gap-2 px-8 py-4 bg-[#E8690A] text-white font-bold rounded-full shadow-lg shadow-orange-500/20 hover:bg-[#c05400] transition-all active:scale-95 group"
-          >
-            <span className="material-symbols-outlined">add</span>
-            <span>Upload a Book</span>
-          </button>
         </div>
 
-        {/* Upload Zone */}
-        <section className="mb-16">
-          <div className="relative group cursor-pointer" onClick={() => setShowUpload(true)}>
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#E8690A] to-orange-300 rounded-lg blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-            <div className="relative flex flex-col items-center justify-center py-12 px-6 border-2 border-dashed border-outline-variant bg-white rounded-lg transition-colors hover:border-[#E8690A]/50">
-              <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[#E8690A] text-3xl">cloud_upload</span>
-              </div>
-              <p className="text-on-surface font-semibold text-lg mb-1">Drag and drop your files here</p>
-              <p className="text-secondary text-sm">Supports PDF, EPUB, and MOBI (Max 50MB)</p>
-            </div>
-          </div>
-        </section>
+
 
         {/* Book Grid or Empty State */}
         {readyBooks.length === 0 ? (
@@ -147,6 +128,14 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
           </section>
         )}
       </main>
+
+      {/* Floating Action Button for Upload */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="fixed bottom-24 right-6 md:bottom-12 md:right-12 w-16 h-16 bg-[#E8690A] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#c05400] hover:scale-105 active:scale-95 transition-all z-40 group"
+      >
+        <span className="material-symbols-outlined text-3xl transition-transform group-hover:rotate-90">add</span>
+      </button>
 
       {/* Upload Modal */}
       {showUpload && (

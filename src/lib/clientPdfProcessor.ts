@@ -197,10 +197,13 @@ async function extractPageHTML(page: any): Promise<string> {
     const y = item.transform[5]
     const height = item.height || 10
 
-    if (lastY !== -1 && Math.abs(y - lastY) > height * 0.5) {
-      html += '<br/>\n'
+    if (lastY !== -1 && Math.abs(y - lastY) > height * 1.2) {
+      html += '<br/><br/>\n'
+    } else if (lastY !== -1 && Math.abs(y - lastY) > height * 0.5) {
+      // It's a new line in the PDF, but we want text to flow in an ebook reader
+      if (!html.endsWith(' ')) html += ' '
     } else if (lastX !== -1 && (x - lastX) > (height * 0.2)) {
-      html += ' '
+      if (!html.endsWith(' ')) html += ' '
     }
 
     let isBold = false
@@ -242,7 +245,7 @@ async function extractChaptersHeuristic(
     // Reconstruct text with better line awareness
     // PDF items have transform info — items with very different Y positions are on different lines
     const items = textContent.items as any[]
-    const lines: string[] = []
+    const lines: { text: string; isParagraphBreak: boolean }[] = []
     let currentLine = ''
     let lastY: number | null = null
     let lastX: number | null = null
@@ -256,9 +259,13 @@ async function extractChaptersHeuristic(
       const y = item.transform ? item.transform[5] : null
       const height = item.height || 10
 
-      if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 0.5) {
-        // New line
-        if (currentLine.trim()) lines.push(currentLine.trim())
+      if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 1.2) {
+        // New paragraph
+        if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: true })
+        currentLine = ''
+      } else if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 0.5) {
+        // Same paragraph, new line -> just break line for heading check, but mark false
+        if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: false })
         currentLine = ''
       } else if (lastX !== null && x !== null && (x - lastX) > (height * 0.2)) {
         currentLine += ' '
@@ -285,10 +292,10 @@ async function extractChaptersHeuristic(
       lastY = y
       if (x !== null) lastX = x + item.width
     }
-    if (currentLine.trim()) lines.push(currentLine.trim())
+    if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: true })
 
-    for (const line of lines) {
-      const plainText = line.replace(/<[^>]+>/g, '')
+    for (const lineObj of lines) {
+      const plainText = lineObj.text.replace(/<[^>]+>/g, '')
       if (isChapterHeading(plainText)) {
         // Save previous chapter
         if (currentChapter) {
@@ -306,12 +313,12 @@ async function extractChaptersHeuristic(
 
         currentChapter = {
           index: chapters.length + 1,
-          title: line,
+          title: lineObj.text,
           startPage: pageNum,
           content: '',
         }
       } else {
-        contentBuffer += line + '<br/>\n'
+        contentBuffer += lineObj.text + (lineObj.isParagraphBreak ? '<br/><br/>\n' : ' ')
       }
     }
   }
