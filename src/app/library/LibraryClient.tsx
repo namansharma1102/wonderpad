@@ -30,22 +30,45 @@ function BookCard({ book, onOpenMenu, router }: { book: BookData; onOpenMenu: (b
     ? Math.round((book.progress.chapter_index / 20) * 100) // Approximate
     : 0
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Only handle primary button (left click or touch)
-    if (e.button !== 0) return
+  // We'll track touch start position to allow slight wiggling without canceling
+  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null)
+
+  const startPress = (e: React.TouchEvent | React.MouseEvent) => {
+    // Only handle primary button (left click) or touch
+    if ('button' in e && e.button !== 0) return
+    
+    if ('touches' in e && e.touches.length > 0) {
+      touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    } else {
+      touchStartPos.current = null
+    }
+
     setIsPressing(true)
     pressTimer.current = setTimeout(() => {
       onOpenMenu(book)
       setIsPressing(false)
-    }, 800) // 800ms long press
+      pressTimer.current = null
+    }, 600) // Slightly faster (600ms) for better UX
   }
 
-  const handlePointerUpOrLeave = () => {
+  const cancelPress = () => {
     if (pressTimer.current) {
       clearTimeout(pressTimer.current)
       pressTimer.current = null
     }
     setIsPressing(false)
+    touchStartPos.current = null
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !pressTimer.current) return
+    const touch = e.touches[0]
+    const dx = Math.abs(touch.clientX - touchStartPos.current.x)
+    const dy = Math.abs(touch.clientY - touchStartPos.current.y)
+    // If finger moves more than 15px, cancel the long press (it's a scroll)
+    if (dx > 15 || dy > 15) {
+      cancelPress()
+    }
   }
 
   const handleClick = (e: React.MouseEvent) => {
@@ -53,25 +76,37 @@ function BookCard({ book, onOpenMenu, router }: { book: BookData; onOpenMenu: (b
     if (!pressTimer.current && isPressing) {
       e.preventDefault()
     }
+    // Also if we just fired the menu, don't navigate
+    if (isPressing === false && pressTimer.current === null && touchStartPos.current === null) {
+      // Menu might be open
+    }
   }
 
   return (
-    <Link 
-      href={`/read/${book.id}/${book.progress?.chapter_index || 1}`}
-      className={`group cursor-pointer block transition-transform duration-200 ${isPressing ? 'scale-95' : ''}`}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUpOrLeave}
-      onPointerLeave={handlePointerUpOrLeave}
-      onPointerCancel={handlePointerUpOrLeave}
-      onClick={handleClick}
-      // Prevent context menu on touch devices
+    <div 
+      className={`group cursor-pointer block transition-transform duration-200 select-none ${isPressing ? 'scale-95' : ''}`}
+      onTouchStart={startPress}
+      onTouchEnd={cancelPress}
+      onTouchMove={handleTouchMove}
+      onTouchCancel={cancelPress}
+      onMouseDown={startPress}
+      onMouseUp={cancelPress}
+      onMouseLeave={cancelPress}
+      // Prevent native context menu on long press on touch devices
       onContextMenu={(e) => {
-        // Only prevent on touch to allow right click on desktop
-        if ((e.nativeEvent as any).pointerType === 'touch') {
+        if (e.nativeEvent && (e.nativeEvent as any).pointerType === 'touch') {
           e.preventDefault()
         }
       }}
+      // Use capture for click to prevent Link from navigating if we just opened the menu
+      onClickCapture={(e) => {
+        if (!pressTimer.current && isPressing) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
     >
+      <Link href={`/read/${book.id}/${book.progress?.chapter_index || 1}`} className="block">
       <div className="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
         {book.cover_url ? (
           <img 
@@ -112,7 +147,8 @@ function BookCard({ book, onOpenMenu, router }: { book: BookData; onOpenMenu: (b
           {book.progress ? `${progressPct}% READ` : 'NEW'}
         </span>
       </div>
-    </Link>
+      </Link>
+    </div>
   )
 }
 
@@ -121,6 +157,7 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
   const [books, setBooks] = useState<BookData[]>(initialBooks)
   const [showUpload, setShowUpload] = useState(false)
   const [activeMenuBook, setActiveMenuBook] = useState<BookData | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
 
@@ -137,6 +174,7 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
       if (!res.ok) throw new Error('Failed to delete book')
       setBooks((prev) => prev.filter((b) => b.id !== activeMenuBook.id))
       setActiveMenuBook(null)
+      setShowDeleteConfirm(false)
       router.refresh()
     } catch (e) {
       console.error(e)
@@ -219,44 +257,72 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div 
             className="absolute inset-0 bg-black/60 transition-opacity" 
-            onClick={() => setActiveMenuBook(null)}
+            onClick={() => {
+              setActiveMenuBook(null)
+              setShowDeleteConfirm(false)
+            }}
           ></div>
           <div className="relative w-full max-w-[320px] bg-white text-slate-700 rounded shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header / Title */}
             <div className="px-6 py-5 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 truncate">{activeMenuBook.title}</h3>
+              <h3 className="text-lg font-bold text-slate-900 truncate">
+                {showDeleteConfirm ? 'Remove Book' : activeMenuBook.title}
+              </h3>
             </div>
             
-            {/* Actions List */}
-            <div className="flex flex-col py-2">
-              <button 
-                onClick={() => {
-                  router.push(`/read/${activeMenuBook.id}/${activeMenuBook.progress?.chapter_index || 1}`)
-                  setActiveMenuBook(null)
-                }}
-                className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
-              >
-                Read
-              </button>
+            {/* Actions List or Confirmation */}
+            {showDeleteConfirm ? (
+              <div className="px-6 py-5">
+                <p className="text-slate-600 mb-6 leading-snug">
+                  Are you sure you want to remove <strong>{activeMenuBook.title}</strong> from your library?
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button 
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    No, Cancel
+                  </button>
+                  <button 
+                    onClick={handleDeleteBook}
+                    disabled={isDeleting}
+                    className="px-4 py-2 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isDeleting ? 'Removing...' : 'Yes, Remove'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col py-2">
+                <button 
+                  onClick={() => {
+                    router.push(`/read/${activeMenuBook.id}/${activeMenuBook.progress?.chapter_index || 1}`)
+                    setActiveMenuBook(null)
+                  }}
+                  className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
+                >
+                  Read
+                </button>
 
-              <button 
-                onClick={() => {
-                  router.push(`/manage/${activeMenuBook.id}`)
-                  setActiveMenuBook(null)
-                }}
-                className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
-              >
-                Story Info
-              </button>
-              
-              <button 
-                onClick={handleDeleteBook}
-                disabled={isDeleting}
-                className="w-full text-left px-6 py-3.5 hover:bg-red-50 transition-colors text-[15px] font-medium text-red-600 disabled:opacity-50"
-              >
-                {isDeleting ? 'Removing...' : 'Remove From Library'}
-              </button>
-            </div>
+                <button 
+                  onClick={() => {
+                    router.push(`/manage/${activeMenuBook.id}`)
+                    setActiveMenuBook(null)
+                  }}
+                  className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
+                >
+                  Story Info
+                </button>
+                
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full text-left px-6 py-3.5 hover:bg-red-50 transition-colors text-[15px] font-medium text-red-600"
+                >
+                  Remove From Library
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
