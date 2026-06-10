@@ -214,48 +214,47 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
         />
       )}
 
-      {/* Book Context Menu Modal */}
+      {/* Book Context Menu Modal (Wattpad Style) */}
       {activeMenuBook && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pb-8 sm:p-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            className="absolute inset-0 bg-black/60 transition-opacity" 
             onClick={() => setActiveMenuBook(null)}
           ></div>
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="p-6 pb-4 border-b border-slate-100 flex gap-4 items-center">
-              <div className="w-12 h-16 bg-slate-100 rounded overflow-hidden shadow-sm shrink-0">
-                {activeMenuBook.cover_url ? (
-                  <img src={activeMenuBook.cover_url} className="w-full h-full object-cover" alt="" />
-                ) : (
-                  <div className="w-full h-full bg-orange-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-orange-200">book</span>
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-slate-900 truncate">{activeMenuBook.title}</h3>
-                <p className="text-xs text-slate-500 truncate">{activeMenuBook.author || 'Unknown Author'}</p>
-              </div>
+          <div className="relative w-full max-w-[320px] bg-white text-slate-700 rounded shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header / Title */}
+            <div className="px-6 py-5 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 truncate">{activeMenuBook.title}</h3>
             </div>
             
-            {/* Actions */}
-            <div className="p-2 flex flex-col">
+            {/* Actions List */}
+            <div className="flex flex-col py-2">
               <button 
-                onClick={() => router.push(`/manage/${activeMenuBook.id}`)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors text-left font-medium text-slate-700"
+                onClick={() => {
+                  router.push(`/read/${activeMenuBook.id}/${activeMenuBook.progress?.chapter_index || 1}`)
+                  setActiveMenuBook(null)
+                }}
+                className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
               >
-                <span className="material-symbols-outlined text-slate-400">info</span>
-                Read story info
+                Read
+              </button>
+
+              <button 
+                onClick={() => {
+                  router.push(`/manage/${activeMenuBook.id}`)
+                  setActiveMenuBook(null)
+                }}
+                className="w-full text-left px-6 py-3.5 hover:bg-slate-50 transition-colors text-[15px] font-medium text-slate-800"
+              >
+                Story Info
               </button>
               
               <button 
                 onClick={handleDeleteBook}
                 disabled={isDeleting}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left font-medium text-red-600 disabled:opacity-50"
+                className="w-full text-left px-6 py-3.5 hover:bg-red-50 transition-colors text-[15px] font-medium text-red-600 disabled:opacity-50"
               >
-                <span className="material-symbols-outlined">delete</span>
-                {isDeleting ? 'Removing...' : 'Remove from library'}
+                {isDeleting ? 'Removing...' : 'Remove From Library'}
               </button>
             </div>
           </div>
