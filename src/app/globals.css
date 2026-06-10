@@ -19,3 +19,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─── Reader: Paragraph spacing for ebook-grade typography ─── */
+.reader-content p {
+  margin-bottom: 1.2em;
+}
+.reader-content p:last-child {
+  margin-bottom: 0;
+}
+/* Backwards compatibility: legacy <br/><br/> content from older uploads */
+.reader-content br + br {
+  display: block;
+  content: "";
+  margin-top: 1em;
+}

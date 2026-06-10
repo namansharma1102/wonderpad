@@ -1,5 +1,6 @@
 /**
- * Client-side PDF processor v2.
+ * Client-side PDF processor v3.
+ * - Adaptive paragraph detection using median Y-delta analysis (two-pass)
  * - Uses PDF outline/bookmarks for chapter detection (primary method)
  * - Falls back to improved heuristics (secondary)
  * - Extracts proper book title from PDF metadata
@@ -22,6 +23,44 @@ export interface ProcessingResult {
   author: string
   title: string   // Extracted from PDF metadata
   pageCount: number
+}
+
+// ─── Utility: Compute the median of an array of numbers ─────────────────────
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+}
+
+// ─── Utility: Analyse Y-deltas on a page to find the normal line spacing ────
+// Returns the median Y-delta (i.e. the "standard" line height for this page).
+// We only consider deltas > 0 (actual vertical movement) and filter out
+// tiny jitter (sub-pixel differences from the same visual line).
+
+function computeNormalLineSpacing(items: any[]): number {
+  const yDeltas: number[] = []
+  let lastY: number | null = null
+
+  for (const item of items) {
+    if (!item.str || item.str.trim() === '') continue
+    const y = item.transform ? item.transform[5] : null
+    if (y === null) continue
+    const height = item.height || 10
+
+    if (lastY !== null) {
+      const delta = Math.abs(y - lastY)
+      // Only consider deltas that represent an actual line change
+      // (more than 40% of font height — filters out same-line items)
+      if (delta > height * 0.4) {
+        yDeltas.push(delta)
+      }
+    }
+    lastY = y
+  }
+
+  return median(yDeltas)
 }
 
 // ─── Outline-based chapter extraction ───────────────────────────────────────
@@ -94,7 +133,7 @@ async function extractChaptersFromOutline(
     for (let pageNum = 1; pageNum < deduped[0].pageNum; pageNum++) {
       const page = await pdfDocument.getPage(pageNum)
       const pageText = await extractPageHTML(page)
-      preludeContent += pageText + '<br/><br/>\n'
+      preludeContent += pageText + '\n'
     }
     if (preludeContent.replace(/<[^>]+>/g, '').trim().length > 100) {
       chapters.push({
@@ -114,7 +153,7 @@ async function extractChaptersFromOutline(
     for (let pageNum = startPage; pageNum <= endPage; pageNum++) {
       const page = await pdfDocument.getPage(pageNum)
       const pageText = await extractPageHTML(page)
-      content += pageText + '<br/><br/>\n'
+      content += pageText + '\n'
     }
 
     chapters.push({
@@ -181,15 +220,33 @@ function isChapterHeading(text: string): boolean {
   return false
 }
 
+// ─── Core page text extraction with adaptive paragraph detection ────────────
+// This is the v3 engine. It uses a two-pass approach:
+//   Pass 1: Scan all Y-deltas on the page to find the median (= normal line spacing)
+//   Pass 2: Walk through items, marking gaps > 1.5x median as paragraph breaks
+
 async function extractPageHTML(page: any): Promise<string> {
   const textContent = await page.getTextContent()
+  const items = textContent.items as any[]
+
+  if (items.length === 0) return ''
+
+  // ── Pass 1: Determine normal line spacing for this page ──
+  const normalSpacing = computeNormalLineSpacing(items)
+  // Paragraph threshold: if gap is more than 1.5x the normal spacing, it's a new paragraph
+  const paragraphThreshold = normalSpacing > 0 ? normalSpacing * 1.5 : Infinity
+
+  // ── Pass 2: Build HTML with adaptive paragraph detection ──
   let html = ''
   let lastY = -1
   let lastX = -1
-  
-  for (const item of textContent.items) {
+
+  for (const item of items) {
     if (!item.str || item.str.trim() === '') {
-      html += ' '
+      // Preserve explicit spaces
+      if (html.length > 0 && !html.endsWith(' ') && !html.endsWith('\n')) {
+        html += ' '
+      }
       continue
     }
 
@@ -197,19 +254,31 @@ async function extractPageHTML(page: any): Promise<string> {
     const y = item.transform[5]
     const height = item.height || 10
 
-    if (lastY !== -1 && Math.abs(y - lastY) > height * 1.2) {
-      html += '<br/><br/>\n'
-    } else if (lastY !== -1 && Math.abs(y - lastY) > height * 0.5) {
-      // It's a new line in the PDF, but we want text to flow in an ebook reader
-      if (!html.endsWith(' ')) html += ' '
-    } else if (lastX !== -1 && (x - lastX) > (height * 0.2)) {
-      if (!html.endsWith(' ')) html += ' '
+    if (lastY !== -1) {
+      const delta = Math.abs(y - lastY)
+
+      if (delta > paragraphThreshold) {
+        // ── PARAGRAPH BREAK ──
+        // Gap is significantly larger than normal line spacing
+        html += '</p><p>'
+      } else if (delta > height * 0.4) {
+        // ── NORMAL LINE WRAP ──
+        // Same paragraph, just wrapping to next line — join with a space
+        if (!html.endsWith(' ')) html += ' '
+      } else if (lastX !== -1 && (x - lastX) > (height * 0.15)) {
+        // ── INLINE WORD GAP ──
+        // Items on the same line with a horizontal gap
+        if (!html.endsWith(' ')) html += ' '
+      }
     }
 
+    // Font style detection
     let isBold = false
     let isItalic = false
     try {
-      const font = page.commonObjs.has(item.fontName) ? page.commonObjs.get(item.fontName) : page.objs.get(item.fontName)
+      const font = page.commonObjs.has(item.fontName)
+        ? page.commonObjs.get(item.fontName)
+        : page.objs.get(item.fontName)
       if (font && font.name) {
         const name = font.name.toLowerCase()
         isBold = name.includes('bold') || name.includes('black') || name.includes('heavy')
@@ -227,7 +296,9 @@ async function extractPageHTML(page: any): Promise<string> {
     lastY = y
     lastX = x + item.width
   }
-  return html
+
+  // Wrap in paragraph tags for clean structure
+  return '<p>' + html + '</p>'
 }
 
 async function extractChaptersHeuristic(
@@ -241,14 +312,20 @@ async function extractChaptersHeuristic(
   for (let pageNum = 1; pageNum <= numPages; pageNum++) {
     const page = await pdfDocument.getPage(pageNum)
     const textContent = await page.getTextContent()
-
-    // Reconstruct text with better line awareness
-    // PDF items have transform info — items with very different Y positions are on different lines
     const items = textContent.items as any[]
+
+    // ── Pass 1: Determine normal line spacing for this page ──
+    const normalSpacing = computeNormalLineSpacing(items)
+    const paragraphThreshold = normalSpacing > 0 ? normalSpacing * 1.5 : Infinity
+
+    // ── Pass 2: Walk items and build structured lines ──
+    // A "line" here is a single visual line in the PDF.
+    // We track whether there was a paragraph-sized gap before each line.
     const lines: { text: string; isParagraphBreak: boolean }[] = []
     let currentLine = ''
     let lastY: number | null = null
     let lastX: number | null = null
+    let pendingParagraphBreak = false
 
     for (const item of items) {
       if (!item.str || item.str.trim() === '') {
@@ -259,22 +336,31 @@ async function extractChaptersHeuristic(
       const y = item.transform ? item.transform[5] : null
       const height = item.height || 10
 
-      if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 1.2) {
-        // New paragraph
-        if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: true })
-        currentLine = ''
-      } else if (lastY !== null && y !== null && Math.abs(y - lastY) > height * 0.5) {
-        // Same paragraph, new line -> just break line for heading check, but mark false
-        if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: false })
-        currentLine = ''
-      } else if (lastX !== null && x !== null && (x - lastX) > (height * 0.2)) {
-        currentLine += ' '
+      if (lastY !== null && y !== null) {
+        const delta = Math.abs(y - lastY)
+
+        if (delta > paragraphThreshold) {
+          // Paragraph break
+          if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: pendingParagraphBreak })
+          currentLine = ''
+          pendingParagraphBreak = true
+        } else if (delta > height * 0.4) {
+          // Normal line wrap
+          if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: pendingParagraphBreak })
+          currentLine = ''
+          pendingParagraphBreak = false
+        } else if (lastX !== null && x !== null && (x - lastX) > (height * 0.15)) {
+          currentLine += ' '
+        }
       }
-      
+
+      // Font style detection
       let isBold = false
       let isItalic = false
       try {
-        const font = page.commonObjs.has(item.fontName) ? page.commonObjs.get(item.fontName) : page.objs.get(item.fontName)
+        const font = page.commonObjs.has(item.fontName)
+          ? page.commonObjs.get(item.fontName)
+          : page.objs.get(item.fontName)
         if (font && font.name) {
           const name = font.name.toLowerCase()
           isBold = name.includes('bold') || name.includes('black') || name.includes('heavy')
@@ -287,13 +373,14 @@ async function extractChaptersHeuristic(
       let text = item.str
       if (isBold) text = `<b>${text}</b>`
       if (isItalic) text = `<i>${text}</i>`
-      
+
       currentLine += text
       lastY = y
       if (x !== null) lastX = x + item.width
     }
-    if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: true })
+    if (currentLine.trim()) lines.push({ text: currentLine.trim(), isParagraphBreak: pendingParagraphBreak })
 
+    // ── Process lines for chapter detection ──
     for (const lineObj of lines) {
       const plainText = lineObj.text.replace(/<[^>]+>/g, '')
       if (isChapterHeading(plainText)) {
@@ -318,14 +405,20 @@ async function extractChaptersHeuristic(
           content: '',
         }
       } else {
-        contentBuffer += lineObj.text + (lineObj.isParagraphBreak ? '<br/><br/>\n' : ' ')
+        // If this line starts a new paragraph, close the previous paragraph and open a new one
+        if (lineObj.isParagraphBreak) {
+          contentBuffer += '</p><p>' + lineObj.text
+        } else {
+          // Same paragraph — join with a space
+          contentBuffer += ' ' + lineObj.text
+        }
       }
     }
   }
 
   // Push the final chapter
   if (currentChapter) {
-    currentChapter.content = contentBuffer.trim()
+    currentChapter.content = '<p>' + contentBuffer.trim() + '</p>'
     chapters.push(currentChapter)
   } else {
     // No chapters detected — treat entire book as one chapter
@@ -333,7 +426,7 @@ async function extractChaptersHeuristic(
       index: 1,
       title: 'Full Text',
       startPage: 1,
-      content: contentBuffer.trim(),
+      content: '<p>' + contentBuffer.trim() + '</p>',
     })
   }
 

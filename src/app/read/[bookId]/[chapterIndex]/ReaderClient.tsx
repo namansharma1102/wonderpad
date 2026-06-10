@@ -212,12 +212,8 @@ export default function ReaderClient({
           </header>
 
           <div 
-            className="reader-content text-justify space-y-8"
-            dangerouslySetInnerHTML={{ 
-              __html: currentChapter.content.includes('<br') 
-                ? currentChapter.content 
-                : currentChapter.content.replace(/\n/g, '<br/>') 
-            }}
+            className="reader-content text-justify"
+            dangerouslySetInnerHTML={{ __html: currentChapter.content }}
           />
           
           <footer className="mt-24 pt-8 border-t flex justify-between items-center opacity-30 text-[10px] font-bold uppercase tracking-widest" style={{ borderColor: 'var(--reader-border)' }}>

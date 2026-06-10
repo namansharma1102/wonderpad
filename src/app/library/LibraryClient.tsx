@@ -22,15 +22,129 @@ interface LibraryClientProps {
   initialBooks: BookData[]
 }
 
+function BookCard({ book, onOpenMenu, router }: { book: BookData; onOpenMenu: (b: BookData) => void; router: any }) {
+  const [isPressing, setIsPressing] = useState(false)
+  const pressTimer = React.useRef<NodeJS.Timeout | null>(null)
+
+  const progressPct = book.progress
+    ? Math.round((book.progress.chapter_index / 20) * 100) // Approximate
+    : 0
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only handle primary button (left click or touch)
+    if (e.button !== 0) return
+    setIsPressing(true)
+    pressTimer.current = setTimeout(() => {
+      onOpenMenu(book)
+      setIsPressing(false)
+    }, 800) // 800ms long press
+  }
+
+  const handlePointerUpOrLeave = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+    setIsPressing(false)
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    // If the long press already fired, we shouldn't navigate
+    if (!pressTimer.current && isPressing) {
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <Link 
+      href={`/read/${book.id}/${book.progress?.chapter_index || 1}`}
+      className={`group cursor-pointer block transition-transform duration-200 ${isPressing ? 'scale-95' : ''}`}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUpOrLeave}
+      onPointerLeave={handlePointerUpOrLeave}
+      onPointerCancel={handlePointerUpOrLeave}
+      onClick={handleClick}
+      // Prevent context menu on touch devices
+      onContextMenu={(e) => {
+        // Only prevent on touch to allow right click on desktop
+        if ((e.nativeEvent as any).pointerType === 'touch') {
+          e.preventDefault()
+        }
+      }}
+    >
+      <div className="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+        {book.cover_url ? (
+          <img 
+            className="w-full h-full object-cover select-none pointer-events-none" 
+            alt={book.title} 
+            src={book.cover_url}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex flex-col items-center justify-center p-4 select-none pointer-events-none">
+            <img src="/logo.png" alt="Wonderpad Logo" className="w-16 h-16 object-contain mb-4 drop-shadow-md mix-blend-multiply opacity-80" />
+            <span className="text-sm text-center font-bold text-slate-700 line-clamp-3 leading-snug px-2">{book.title}</span>
+          </div>
+        )}
+        
+        {/* Manage Button on Hover (Desktop) */}
+        <div 
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onOpenMenu(book)
+          }}
+          className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-slate-400 hover:text-[#E8690A] opacity-0 group-hover:opacity-100 transition-all active:scale-90 z-10 hidden md:block"
+        >
+          <span className="material-symbols-outlined text-base">more_vert</span>
+        </div>
+
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
+          <div 
+            className="h-full bg-[#E8690A] progress-bar-glow" 
+            style={{ width: `${book.progress ? Math.max(progressPct, 5) : 0}%` }}
+          ></div>
+        </div>
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-headline-md text-base font-bold text-on-surface truncate">{book.title}</h3>
+        <p className="text-secondary text-sm truncate">{book.author || 'Unknown Author'}</p>
+        <span className="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">
+          {book.progress ? `${progressPct}% READ` : 'NEW'}
+        </span>
+      </div>
+    </Link>
+  )
+}
+
+
 export default function LibraryClient({ initialBooks }: LibraryClientProps) {
   const [books, setBooks] = useState<BookData[]>(initialBooks)
   const [showUpload, setShowUpload] = useState(false)
+  const [activeMenuBook, setActiveMenuBook] = useState<BookData | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
 
   const handleUploadComplete = useCallback(() => {
     setShowUpload(false)
     router.refresh()
   }, [router])
+
+  const handleDeleteBook = async () => {
+    if (!activeMenuBook) return
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/books/${activeMenuBook.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete book')
+      setBooks((prev) => prev.filter((b) => b.id !== activeMenuBook.id))
+      setActiveMenuBook(null)
+      router.refresh()
+    } catch (e) {
+      console.error(e)
+      alert('Failed to delete book')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const readyBooks = books.filter((b) => b.status === 'ready')
 
@@ -71,59 +185,14 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
         ) : (
           <section>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-              {readyBooks.map((book) => {
-                const progressPct = book.progress
-                  ? Math.round((book.progress.chapter_index / 20) * 100) // Approximate
-                  : 0
-
-                return (
-                  <Link 
-                    key={book.id} 
-                    href={`/read/${book.id}/${book.progress?.chapter_index || 1}`}
-                    className="group cursor-pointer block"
-                  >
-                    <div className="relative aspect-[2/3] mb-4 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
-                      {book.cover_url ? (
-                        <img 
-                          className="w-full h-full object-cover" 
-                          alt={book.title} 
-                          src={book.cover_url}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex flex-col items-center justify-center p-4">
-                          <img src="/logo.png" alt="Wonderpad Logo" className="w-16 h-16 object-contain mb-4 drop-shadow-md mix-blend-multiply opacity-80" />
-                          <span className="text-sm text-center font-bold text-slate-700 line-clamp-3 leading-snug px-2">{book.title}</span>
-                        </div>
-                      )}
-                      
-                      {/* Manage Button on Hover */}
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          router.push(`/manage/${book.id}`)
-                        }}
-                        className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-slate-400 hover:text-[#E8690A] opacity-0 group-hover:opacity-100 transition-all active:scale-90 z-10"
-                      >
-                        <span className="material-symbols-outlined text-base">settings</span>
-                      </div>
-
-                      <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-200">
-                        <div 
-                          className="h-full bg-[#E8690A] progress-bar-glow" 
-                          style={{ width: `${book.progress ? Math.max(progressPct, 5) : 0}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-headline-md text-base font-bold text-on-surface truncate">{book.title}</h3>
-                      <p className="text-secondary text-sm truncate">{book.author || 'Unknown Author'}</p>
-                      <span className="inline-block text-[10px] font-bold text-[#E8690A] bg-orange-50 px-2 py-0.5 rounded">
-                        {book.progress ? `${progressPct}% READ` : 'NEW'}
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
+              {readyBooks.map((book) => (
+                <BookCard 
+                  key={book.id} 
+                  book={book} 
+                  onOpenMenu={setActiveMenuBook} 
+                  router={router} 
+                />
+              ))}
             </div>
           </section>
         )}
@@ -143,6 +212,54 @@ export default function LibraryClient({ initialBooks }: LibraryClientProps) {
           onClose={() => setShowUpload(false)}
           onUploadComplete={handleUploadComplete}
         />
+      )}
+
+      {/* Book Context Menu Modal */}
+      {activeMenuBook && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pb-8 sm:p-0">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            onClick={() => setActiveMenuBook(null)}
+          ></div>
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-slate-100 flex gap-4 items-center">
+              <div className="w-12 h-16 bg-slate-100 rounded overflow-hidden shadow-sm shrink-0">
+                {activeMenuBook.cover_url ? (
+                  <img src={activeMenuBook.cover_url} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  <div className="w-full h-full bg-orange-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-orange-200">book</span>
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-slate-900 truncate">{activeMenuBook.title}</h3>
+                <p className="text-xs text-slate-500 truncate">{activeMenuBook.author || 'Unknown Author'}</p>
+              </div>
+            </div>
+            
+            {/* Actions */}
+            <div className="p-2 flex flex-col">
+              <button 
+                onClick={() => router.push(`/manage/${activeMenuBook.id}`)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors text-left font-medium text-slate-700"
+              >
+                <span className="material-symbols-outlined text-slate-400">info</span>
+                Read story info
+              </button>
+              
+              <button 
+                onClick={handleDeleteBook}
+                disabled={isDeleting}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left font-medium text-red-600 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined">delete</span>
+                {isDeleting ? 'Removing...' : 'Remove from library'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
